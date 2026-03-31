@@ -184,7 +184,7 @@ export default async function OrderDetailPage({ params }: OrderPageProps) {
                                         key={item.productId}
                                         className="flex gap-4 border-b border-border pb-4 last:border-0 last:pb-0"
                                     >
-                                        <div className="relative h-20 w-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                                        <div className="relative h-20 w-20 rounded-lg overflow-hidden bg-muted shrink-0">
                                             <Image
                                                 src={item.image}
                                                 alt={item.name}

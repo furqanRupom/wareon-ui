@@ -21,10 +21,11 @@ import {
     FieldGroup,
     FieldLabel,
 } from "@/components/ui/field";
-import { Plus, Minus, Trash2, ShoppingBag } from "lucide-react";
+import { Plus, Minus, Trash2, ShoppingBag, ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { createOrder } from "@/app/services/order/createOrder";
+import { toast } from "sonner";
 
 interface CartItem {
     productId: string;
@@ -33,65 +34,68 @@ interface CartItem {
     quantity: number;
     image: string;
     stock: number;
+    category?: string;
 }
-
-const mockProducts = {
-    "1": { name: "Chic Transparent Fashion Handbag", price: 61, image: "https://i.imgur.com/Lqaqz59.jpg", stock: 50 },
-    "2": { name: "Premium Cotton Shirt", price: 49, image: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=200&h=200&fit=crop", stock: 35 },
-    "3": { name: "Classic Crew Neck T-Shirt", price: 29, image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=200&h=200&fit=crop", stock: 100 },
-    "4": { name: "Urban Bomber Jacket", price: 89, image: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=200&h=200&fit=crop", stock: 20 },
-};
 
 export default function OrderForm() {
     const router = useRouter();
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
+    const [loading, setLoading] = useState(true);
     const [state, formAction, isPending] = useActionState(createOrder, null);
 
+    // Load cart from localStorage
     useEffect(() => {
-        // Load cart from localStorage or use mock data
+        loadCartFromStorage();
+
+        // Listen for cart updates
+        window.addEventListener("cartUpdated", loadCartFromStorage);
+
+        return () => {
+            window.removeEventListener("cartUpdated", loadCartFromStorage);
+        };
+    }, []);
+
+    const loadCartFromStorage = () => {
         const savedCart = localStorage.getItem("cart");
         if (savedCart) {
-            setCartItems(JSON.parse(savedCart));
+            const parsedCart = JSON.parse(savedCart);
+            setCartItems(parsedCart);
         } else {
-            // Mock cart items for demo
-            const mockCart = [
-                {
-                    productId: "1",
-                    name: mockProducts["1"].name,
-                    price: mockProducts["1"].price,
-                    quantity: 2,
-                    image: mockProducts["1"].image,
-                    stock: mockProducts["1"].stock,
-                },
-                {
-                    productId: "2",
-                    name: mockProducts["2"].name,
-                    price: mockProducts["2"].price,
-                    quantity: 1,
-                    image: mockProducts["2"].image,
-                    stock: mockProducts["2"].stock,
-                },
-            ];
-            setCartItems(mockCart);
+            setCartItems([]);
         }
-    }, []);
+        setLoading(false);
+    };
 
     const updateQuantity = (productId: string, newQuantity: number) => {
         if (newQuantity < 1) return;
-        const product = mockProducts[productId as keyof typeof mockProducts];
-        if (newQuantity > product.stock) return;
 
-        setCartItems(prev =>
-            prev.map(item =>
-                item.productId === productId
-                    ? { ...item, quantity: newQuantity }
-                    : item
-            )
+        const item = cartItems.find(i => i.productId === productId);
+        if (newQuantity > (item?.stock || 0)) {
+            toast.success(`Only ${item?.stock} items available in stock.`);
+            return;
+        }
+
+        const updatedCart = cartItems.map(item =>
+            item.productId === productId
+                ? { ...item, quantity: newQuantity }
+                : item
         );
+
+        setCartItems(updatedCart);
+        // Update localStorage
+        localStorage.setItem("cart", JSON.stringify(updatedCart));
+        window.dispatchEvent(new Event("cartUpdated"));
     };
 
     const removeItem = (productId: string) => {
-        setCartItems(prev => prev.filter(item => item.productId !== productId));
+        const itemToRemove = cartItems.find(item => item.productId === productId);
+        const updatedCart = cartItems.filter(item => item.productId !== productId);
+
+        setCartItems(updatedCart);
+        localStorage.setItem("cart", JSON.stringify(updatedCart));
+        window.dispatchEvent(new Event("cartUpdated"));
+
+        toast.success(`${itemToRemove?.name} has been removed from your cart.`);
     };
 
     const subtotal = cartItems.reduce(
@@ -111,25 +115,62 @@ export default function OrderForm() {
     };
 
     const handleSubmit = async (formData: FormData) => {
+        // Validate cart is not empty
+        if (cartItems.length === 0) {
+            toast.error("Cart is empty");
+            return;
+        }
+
         // Add cart items to form data
         formData.append("items", JSON.stringify(cartItems.map(item => ({
             productId: item.productId,
-            quantity: item.quantity
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            image: item.image
         }))));
 
+        // Add totals to form data
+        formData.append("subtotal", subtotal.toString());
+        formData.append("shipping", shipping.toString());
+        formData.append("tax", tax.toString());
+        formData.append("total", total.toString());
+
         const result = await createOrder(null, formData);
+
         if (result.success) {
+            // Clear cart after successful order
             localStorage.removeItem("cart");
+            window.dispatchEvent(new Event("cartUpdated"));
+
+            toast.success("Order placed successfully!");
+
             router.push(`/order/${result.orderId}`);
+        } else if (result.errors) {
+            // Errors will be handled by the form
+            toast.error("Please fix the errors in the form and try again.");
         }
     };
+
+    if (loading) {
+        return (
+            <Card className="text-center py-12">
+                <CardContent>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                    <p className="text-muted-foreground mt-4">Loading your cart...</p>
+                </CardContent>
+            </Card>
+        );
+    }
 
     if (cartItems.length === 0) {
         return (
             <Card className="text-center py-12">
                 <CardContent>
                     <ShoppingBag className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                    <h3 className="text-xl font-semibold mb-2">Your cart is empty</h3>
+                    <h3 className="text-xl font-semibold text-foreground mb-2">
+                        Your cart is empty
+                    </h3>
                     <p className="text-muted-foreground mb-6">
                         Add some products to your cart before placing an order.
                     </p>
@@ -230,10 +271,20 @@ export default function OrderForm() {
                                 </Field>
                             </FieldGroup>
                         </CardContent>
-                        <CardFooter>
+                        <CardFooter className="flex gap-3 pt-5">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className="flex-1 rounded-full"
+                                onClick={() => router.push("/cart")}
+                            >
+                                <ArrowLeft className="h-4 w-4 mr-2" />
+                                Back to Cart
+                            </Button>
                             <Button
                                 type="submit"
-                                className="w-full rounded-full"
+                                size={"lg"}
+                                className="flex-1 rounded-full "
                                 disabled={isPending}
                             >
                                 {isPending ? "Placing Order..." : "Place Order"}
@@ -245,64 +296,79 @@ export default function OrderForm() {
 
             {/* Order Summary */}
             <div>
-                <Card>
+                <Card className="sticky top-20">
                     <CardHeader>
                         <CardTitle>Order Summary</CardTitle>
-                        <CardDescription>{cartItems.length} items in cart</CardDescription>
+                        <CardDescription>
+                            {cartItems.reduce((sum, item) => sum + item.quantity, 0)} items in cart
+                        </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        {cartItems.map((item) => (
-                            <div key={item.productId} className="flex gap-3 border-b border-border pb-3">
-                                <div className="relative h-16 w-16 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-                                    <Image
-                                        src={item.image}
-                                        alt={item.name}
-                                        fill
-                                        className="object-cover"
-                                    />
-                                </div>
-                                <div className="flex-1">
-                                    <p className="font-medium text-sm line-clamp-2">{item.name}</p>
-                                    <p className="text-primary font-semibold text-sm mt-1">
-                                        ${item.price}
-                                    </p>
-                                    <div className="flex items-center justify-between mt-2">
-                                        <div className="flex items-center gap-2">
+                        {/* Cart Items */}
+                        <div className="space-y-3 max-h-80 overflow-y-auto">
+                            {cartItems.map((item) => (
+                                <div key={item.productId} className="flex gap-3 border-b border-border pb-3">
+                                    <div className="relative h-16 w-16 rounded-lg overflow-hidden bg-muted shrink-0">
+                                        <Image
+                                            src={item.image}
+                                            alt={item.name}
+                                            fill
+                                            className="object-cover"
+                                        />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-medium text-sm line-clamp-2">{item.name}</p>
+                                        <p className="text-primary font-semibold text-sm mt-1">
+                                            ${item.price}
+                                        </p>
+                                        <div className="flex items-center justify-between mt-2">
+                                            <div className="flex items-center gap-1">
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="icon"
+                                                    className="h-6 w-6 rounded-full"
+                                                    onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                                                    disabled={item.quantity <= 1}
+                                                >
+                                                    <Minus className="h-3 w-3" />
+                                                </Button>
+                                                <span className="text-xs w-6 text-center font-medium">
+                                                    {item.quantity}
+                                                </span>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="icon"
+                                                    className="h-6 w-6 rounded-full"
+                                                    onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                                                    disabled={item.quantity >= item.stock}
+                                                >
+                                                    <Plus className="h-3 w-3" />
+                                                </Button>
+                                            </div>
                                             <Button
                                                 type="button"
-                                                variant="outline"
+                                                variant="ghost"
                                                 size="icon"
-                                                className="h-7 w-7 rounded-full"
-                                                onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                                                className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                                                onClick={() => removeItem(item.productId)}
                                             >
-                                                <Minus className="h-3 w-3" />
-                                            </Button>
-                                            <span className="text-sm w-8 text-center">{item.quantity}</span>
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="icon"
-                                                className="h-7 w-7 rounded-full"
-                                                onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                                            >
-                                                <Plus className="h-3 w-3" />
+                                                <Trash2 className="h-3 w-3" />
                                             </Button>
                                         </div>
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-7 w-7 text-destructive hover:text-destructive"
-                                            onClick={() => removeItem(item.productId)}
-                                        >
-                                            <Trash2 className="h-3 w-3" />
-                                        </Button>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="font-semibold text-sm">
+                                            ${(item.price * item.quantity).toFixed(2)}
+                                        </p>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
 
-                        <div className="space-y-2 pt-2">
+                        {/* Totals */}
+                        <div className="space-y-2 pt-2 border-t border-border">
                             <div className="flex justify-between text-sm">
                                 <span className="text-muted-foreground">Subtotal</span>
                                 <span className="font-medium">${subtotal.toFixed(2)}</span>
@@ -323,6 +389,13 @@ export default function OrderForm() {
                                     <span className="text-primary text-lg">${total.toFixed(2)}</span>
                                 </div>
                             </div>
+                        </div>
+
+                        {/* Shipping Info */}
+                        <div className="pt-4 text-xs text-muted-foreground space-y-1">
+                            <p>✓ Free shipping on orders over $100</p>
+                            <p>✓ 30-day money-back guarantee</p>
+                            <p>✓ Secure payment with SSL encryption</p>
                         </div>
                     </CardContent>
                 </Card>

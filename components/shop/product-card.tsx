@@ -33,14 +33,56 @@ export default function ProductCard({ product }: ProductCardProps) {
         e.preventDefault();
         setIsAdding(true);
 
-        // Simulate API call
-        setTimeout(() => {
-            // toast({
-            //     title: "Added to cart",
-            //     description: `${product.name} has been added to your cart.`,
-            // });
-            setIsAdding(false);
-        }, 500);
+        // Get existing cart from localStorage
+        const existingCart = localStorage.getItem("cart");
+        let cartItems = existingCart ? JSON.parse(existingCart) : [];
+
+        // Check if product already exists in cart
+        const existingItemIndex = cartItems.findIndex(
+            (item: any) => item.productId === product._id
+        );
+
+        if (existingItemIndex !== -1) {
+            // Update quantity if product exists
+            const newQuantity = cartItems[existingItemIndex].quantity + 1;
+
+            // Check stock limit
+            if (newQuantity > product.stock) {
+                // toast({
+                //     title: "Maximum quantity reached",
+                //     description: `Only ${product.stock} items available in stock.`,
+                //     variant: "destructive",
+                // });
+                setIsAdding(false);
+                return;
+            }
+
+            cartItems[existingItemIndex].quantity = newQuantity;
+        } else {
+            // Add new product to cart
+            cartItems.push({
+                productId: product._id,
+                name: product.name,
+                price: product.price,
+                quantity: 1,
+                image: product.productUrl[0],
+                stock: product.stock,
+                category: product.category.name,
+            });
+        }
+
+        // Save to localStorage
+        localStorage.setItem("cart", JSON.stringify(cartItems));
+
+        // Dispatch custom event to update cart count in navbar
+        window.dispatchEvent(new Event("cartUpdated"));
+
+        // toast({
+        // //     title: "Added to cart",
+        // //     description: `${product.name} has been added to your cart.`,
+        // });
+
+        setIsAdding(false);
     };
 
     return (

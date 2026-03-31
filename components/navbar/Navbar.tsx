@@ -1,6 +1,7 @@
+// components/navbar.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
     NavigationMenu,
@@ -19,26 +20,40 @@ import {
     SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet";
-import {
-    Accordion,
-    AccordionContent,
-    AccordionItem,
-    AccordionTrigger,
-} from "@/components/ui/accordion";
+
+import { Badge } from "@/components/ui/badge";
 import { ShoppingCart, User, Search, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const shopCategories = [
-    { "title": "All", href: "/shop" },
-    { title: "Men", href: "/shop/men" },
-    { title: "Women", href: "/shop/women" },
-    { title: "Kids", href: "/shop/kids" },
-    { title: "Accessories", href: "/shop/accessories" },
-];
+
 
 export default function Navbar() {
     const [searchQuery, setSearchQuery] = useState("");
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [cartCount, setCartCount] = useState(0);
+
+    // Load cart count on mount and listen for updates
+    useEffect(() => {
+        loadCartCount();
+        
+        // Listen for cart updates
+        window.addEventListener("cartUpdated", loadCartCount);
+        
+        return () => {
+            window.removeEventListener("cartUpdated", loadCartCount);
+        };
+    }, []);
+
+    const loadCartCount = () => {
+        const cart = localStorage.getItem("cart");
+        if (cart) {
+            const cartItems = JSON.parse(cart);
+            const totalItems = cartItems.reduce((sum: number, item: any) => sum + item.quantity, 0);
+            setCartCount(totalItems);
+        } else {
+            setCartCount(0);
+        }
+    };
 
     return (
         <header className="w-full border-b bg-background sticky top-0 z-50">
@@ -82,30 +97,9 @@ export default function Navbar() {
 
                                     {/* Mobile nav links */}
                                     <nav className="flex-1 overflow-y-auto px-4 py-2">
-                                        <Accordion type="single" collapsible>
-                                            <AccordionItem value="shop" className="border-b">
-                                                <AccordionTrigger className="text-sm font-medium py-3 hover:text-primary">
-                                                    Shop
-                                                </AccordionTrigger>
-                                                <AccordionContent>
-                                                    <ul className="pl-2 space-y-1 pb-2">
-                                                        {shopCategories.map((cat) => (
-                                                            <li key={cat.href}>
-                                                                <Link
-                                                                    href={cat.href}
-                                                                    className="block py-2 px-2 text-sm text-muted-foreground rounded-md hover:bg-secondary hover:text-primary transition-colors"
-                                                                    onClick={() => setMobileOpen(false)}
-                                                                >
-                                                                    {cat.title}
-                                                                </Link>
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                </AccordionContent>
-                                            </AccordionItem>
-                                        </Accordion>
+                                       
 
-                                        {["New Arrivals", "Brands"].map((label) => (
+                                        {["Shop", "Brands"].map((label) => (
                                             <Link
                                                 key={label}
                                                 href={`/${label.toLowerCase().replace(" ", "-")}`}
@@ -121,12 +115,17 @@ export default function Navbar() {
                                     <div className="px-4 py-4 border-t flex gap-3">
                                         <Button
                                             variant="outline"
-                                            className="flex-1 gap-2 hover:text-primary hover:border-primary"
+                                            className="flex-1 gap-2 hover:text-primary hover:border-primary relative"
                                             asChild
                                         >
                                             <Link href="/cart" onClick={() => setMobileOpen(false)}>
                                                 <ShoppingCart className="h-4 w-4" />
                                                 Cart
+                                                {cartCount > 0 && (
+                                                    <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center bg-primary text-primary-foreground">
+                                                        {cartCount}
+                                                    </Badge>
+                                                )}
                                             </Link>
                                         </Button>
                                         <Button
@@ -157,35 +156,10 @@ export default function Navbar() {
                     <nav className="hidden lg:flex items-center">
                         <NavigationMenu>
                             <NavigationMenuList>
-                                {/* Shop dropdown */}
-                                <NavigationMenuItem>
-                                    <NavigationMenuTrigger className="text-sm font-medium text-foreground hover:text-primary focus:text-primary data-active:text-primary data-[state=open]:text-primary">
-                                        Shop
-                                    </NavigationMenuTrigger>
-                                    <NavigationMenuContent>
-                                        <ul className="grid grid-cols-2 gap-1 p-4 w-56">
-                                            {shopCategories.map((cat) => (
-                                                <li key={cat.href}>
-                                                    <NavigationMenuLink asChild>
-                                                        <Link
-                                                            href={cat.href}
-                                                            className={cn(
-                                                                "block select-none rounded-md px-3 py-2 text-sm leading-none no-underline outline-none transition-colors",
-                                                                "text-secondary-foreground hover:bg-secondary hover:text-primary",
-                                                                "focus:bg-secondary focus:text-primary"
-                                                            )}
-                                                        >
-                                                            {cat.title}
-                                                        </Link>
-                                                    </NavigationMenuLink>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </NavigationMenuContent>
-                                </NavigationMenuItem>
+                              
 
                                 {/* Flat links */}
-                                {[" New Arrivals", "Brands"].map((label) => (
+                                {["Shop", "Brands"].map((label) => (
                                     <NavigationMenuItem key={label}>
                                         <NavigationMenuLink
                                             asChild
@@ -229,17 +203,24 @@ export default function Navbar() {
                             <Search className="h-5 w-5" />
                         </Button>
 
+                        {/* Cart Button with Badge */}
                         <Button
                             variant="ghost"
                             size="icon"
                             aria-label="Cart"
-                            className="hover:text-primary"
+                            className="hover:text-primary relative"
                             asChild
                         >
                             <Link href="/cart">
                                 <ShoppingCart className="h-5 w-5" />
+                                {cartCount > 0 && (
+                                    <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center bg-primary text-primary-foreground text-xs">
+                                        {cartCount > 99 ? "99+" : cartCount}
+                                    </Badge>
+                                )}
                             </Link>
                         </Button>
+                        
                         <Button
                             variant="ghost"
                             size="icon"
