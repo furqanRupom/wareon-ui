@@ -12,7 +12,7 @@ import {
     FieldGroup,
     FieldLabel,
 } from "@/components/ui/field";
-import { signUpUser } from "@/app/services/signUpUser";
+import { signUpUser } from "@/app/services/auth/signUpUser";
 
 export default function SignUpForm() {
     const [showPassword, setShowPassword] = useState(false);

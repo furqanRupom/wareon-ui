@@ -12,7 +12,7 @@ import {
     FieldGroup,
     FieldLabel,
 } from "@/components/ui/field";
-import { signInUser } from "@/app/services/signInUser";
+import { signInUser } from "@/app/services/auth/signInUser";
 
 export default function SignInForm() {
     const [showPassword, setShowPassword] = useState(false);
