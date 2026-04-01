@@ -31,7 +31,7 @@ interface CartItem {
 export default function ShoppingCart() {
     const router = useRouter();
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
         loadCart();
