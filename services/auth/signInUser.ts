@@ -82,7 +82,7 @@ export const signInUser = async (_currentState: any, formData: FormData): Promis
             path: refreshTokenObject.Path || "/",
             sameSite: refreshTokenObject['SameSite'] || "none",
         });
-        const verifiedToken: JwtPayload | string = jwt.verify(accessTokenObject.accessToken, process.env.JWT_SECRET as string);
+        const verifiedToken: JwtPayload | string = jwt.decode(accessTokenObject.accessToken) as JwtPayload;
 
         if (typeof verifiedToken === "string") {
             throw new Error("Invalid token");
@@ -104,7 +104,10 @@ export const signInUser = async (_currentState: any, formData: FormData): Promis
         } else {
             redirect(`${getDefaultDashboardRoute(userRole)}?loggedIn=true`);
         }
-    } catch (error) {
+    } catch (error: any) {
+        if (error?.digest?.startsWith('NEXT_REDIRECT')) {
+            throw error;
+        }
         console.error("Error logging in:", error);
     }
 };
