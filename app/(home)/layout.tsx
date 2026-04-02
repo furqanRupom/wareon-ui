@@ -1,5 +1,5 @@
 import Footer from '@/components/footer/Footer';
-import Navbar from '@/components/navbar/Navbar';
+import Navbar from '@/components/shared/Navbar';
 import * as React from 'react';
 
 interface IHomeLayoutProps {
@@ -7,7 +7,7 @@ interface IHomeLayoutProps {
 }
 
 const HomeLayout: React.FunctionComponent<IHomeLayoutProps> = (props) => {
-    return <main className="max-w-7xl mx-auto">
+    return <main>
         <Navbar />
         <div>
             {props.children}

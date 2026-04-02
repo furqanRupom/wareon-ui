@@ -82,7 +82,7 @@ const DashboardNavbarContent = ({
                         />
                         <Input
                             type="text"
-                            placeholder="Search doctors by symptoms..."
+                            placeholder="Search products..."
                             className="pl-9 pr-4"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}

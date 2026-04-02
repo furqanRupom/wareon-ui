@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Heart, Minus, Plus, Check } from "lucide-react";
+import { ShoppingCart, Heart, Minus, Plus, Check, Loader2 } from "lucide-react";
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -13,180 +13,119 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { useParams, useSearchParams } from "next/navigation";
-// import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
-// Mock Products Data
-const mockProducts = [
-    {
-        _id: "1",
-        name: "Chic Transparent Fashion Handbag",
-        price: 61,
-        stock: 50,
-        productUrl: ["https://i.imgur.com/Lqaqz59.jpg", "https://i.imgur.com/uSqWK0m.jpg", "https://i.imgur.com/atWACf1.jpg"],
-        category: {
-            _id: "cat1",
-            name: "Miscellaneous",
-            slug: "miscellaneous",
-        },
-        status: "ACTIVE",
-        sku: "CHIC-TRANSPARENT-001",
-        description: "A stylish transparent handbag that adds a modern touch to any outfit. Perfect for casual and formal occasions."
-    },
-    {
-        _id: "2",
-        name: "Premium Cotton Shirt",
-        price: 49,
-        stock: 35,
-        productUrl: ["https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=600&h=600&fit=crop"],
-        category: {
-            _id: "cat2",
-            name: "Men's Wear",
-            slug: "mens-wear",
-        },
-        status: "ACTIVE",
-        sku: "PREMIUM-COTTON-001",
-        description: "High-quality cotton shirt with premium fabric for ultimate comfort and style."
-    },
-    {
-        _id: "3",
-        name: "Classic Crew Neck T-Shirt",
-        price: 29,
-        stock: 100,
-        productUrl: ["https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600&h=600&fit=crop"],
-        category: {
-            _id: "cat2",
-            name: "Men's Wear",
-            slug: "mens-wear",
-        },
-        status: "ACTIVE",
-        sku: "CLASSIC-CREW-001",
-        description: "Essential crew neck t-shirt made from soft, breathable cotton. Perfect for everyday wear."
-    },
-    {
-        _id: "4",
-        name: "Urban Bomber Jacket",
-        price: 89,
-        stock: 20,
-        productUrl: ["https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600&h=600&fit=crop"],
-        category: {
-            _id: "cat2",
-            name: "Men's Wear",
-            slug: "mens-wear",
-        },
-        status: "ACTIVE",
-        sku: "URBAN-BOMBER-001",
-        description: "Stylish bomber jacket with urban design. Features comfortable fit and durable material."
-    },
-    {
-        _id: "5",
-        name: "Elegant Evening Dress",
-        price: 120,
-        stock: 15,
-        productUrl: ["https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=600&h=600&fit=crop"],
-        category: {
-            _id: "cat3",
-            name: "Women's Wear",
-            slug: "womens-wear",
-        },
-        status: "ACTIVE",
-        sku: "ELEGANT-DRESS-001",
-        description: "Stunning evening dress perfect for special occasions. Made with high-quality fabric."
-    },
-    {
-        _id: "6",
-        name: "Casual Denim Jeans",
-        price: 55,
-        stock: 45,
-        productUrl: ["https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=600&h=600&fit=crop"],
-        category: {
-            _id: "cat2",
-            name: "Men's Wear",
-            slug: "mens-wear",
-        },
-        status: "ACTIVE",
-        sku: "CASUAL-DENIM-001",
-        description: "Classic denim jeans with comfortable fit and durable material."
-    },
-    {
-        _id: "7",
-        name: "Leather Crossbody Bag",
-        price: 75,
-        stock: 30,
-        productUrl: ["https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=600&h=600&fit=crop"],
-        category: {
-            _id: "cat4",
-            name: "Accessories",
-            slug: "accessories",
-        },
-        status: "ACTIVE",
-        sku: "LEATHER-BAG-001",
-        description: "Premium leather crossbody bag with multiple compartments. Perfect for daily use."
-    },
-    {
-        _id: "8",
-        name: "Running Sneakers",
-        price: 85,
-        stock: 40,
-        productUrl: ["https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&h=600&fit=crop"],
-        category: {
-            _id: "cat5",
-            name: "Footwear",
-            slug: "footwear",
-        },
-        status: "ACTIVE",
-        sku: "RUNNING-SNEAKERS-001",
-        description: "Comfortable running sneakers with excellent support and cushioning."
-    },
-];
+interface Product {
+    _id: string;
+    name: string;
+    price: number;
+    stock: number;
+    productUrl: string[];
+    category: {
+        _id: string;
+        name: string;
+        slug: string;
+    };
+    status: string;
+    sku: string;
+    description?: string;
+}
 
-export default function ProductDetailPage(params :{id: string}) {
-    // const { toast } = useToast();
-    const [product, setProduct] = useState<any>(null);
+export default function ProductDetailPage({ id }: { id: string }) {
+    const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
+    const [notFound, setNotFound] = useState(false);
     const [quantity, setQuantity] = useState(1);
     const [selectedImage, setSelectedImage] = useState(0);
     const [isAdding, setIsAdding] = useState(false);
+    const [isWishlisted, setIsWishlisted] = useState(false);
 
     useEffect(() => {
-        // Simulate API call
-        setTimeout(() => {
-            const foundProduct = mockProducts.find(p => p._id === params.id);
-            setProduct(foundProduct || null);
-            setLoading(false);
-        }, 500);
-    }, [params.id]);
+        const fetchProduct = async () => {
+            setLoading(true);
+            setNotFound(false);
+            try {
+                const res = await fetch(`/api/products/${id}`);
+                const data = await res.json();
+                if (data.success && data.data) {
+                    setProduct(data.data);
+                } else {
+                    setNotFound(true);
+                }
+            } catch (err) {
+                console.error("Failed to fetch product:", err);
+                setNotFound(true);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (id) fetchProduct();
+    }, [id]);
 
     const handleAddToCart = async () => {
         if (!product) return;
-
         setIsAdding(true);
-        // Simulate API call
-        setTimeout(() => {
-            // toast({
-            //     title: "Added to cart",
-            //     description: `${quantity} × ${product.name} added to your cart.`,
-            // });
-            // setIsAdding(false);
-        }, 500);
+
+        try {
+            const existingCart = localStorage.getItem("cart");
+            let cartItems = existingCart ? JSON.parse(existingCart) : [];
+
+            const existingIndex = cartItems.findIndex(
+                (item: any) => item.productId === product._id
+            );
+
+            const requestedQty = quantity;
+
+            if (existingIndex !== -1) {
+                const newQuantity = cartItems[existingIndex].quantity + requestedQty;
+                if (newQuantity > product.stock) {
+                    toast.error(`Only ${product.stock} items in stock. You already have ${cartItems[existingIndex].quantity} in your cart.`);
+                    return;
+                }
+                cartItems[existingIndex].quantity = newQuantity;
+            } else {
+                cartItems.push({
+                    productId: product._id,
+                    name: product.name,
+                    price: product.price,
+                    quantity: requestedQty,
+                    image: product.productUrl[0],
+                    stock: product.stock,
+                    category: product.category.name,
+                });
+            }
+
+            localStorage.setItem("cart", JSON.stringify(cartItems));
+            window.dispatchEvent(new Event("cartUpdated"));
+
+            toast.success(`${product.name} added to cart!`);
+        } finally {
+            setIsAdding(false);
+        }
     };
 
     const updateQuantity = (delta: number) => {
         const newQuantity = quantity + delta;
-        if (newQuantity >= 1 && newQuantity <= (product?.stock || 10)) {
+        if (newQuantity >= 1 && newQuantity <= (product?.stock || 1)) {
             setQuantity(newQuantity);
         }
+    };
+
+    const handleWishlist = () => {
+        setIsWishlisted((prev) => !prev);
+        toast.success(isWishlisted ? `${product?.name} removed from wishlist!` : `${product?.name} added to wishlist!`);
     };
 
     if (loading) {
         return (
             <div className="container mx-auto px-4 py-8 flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                <Loader2 className="animate-spin h-12 w-12 text-muted-foreground" />
             </div>
         );
     }
 
-    if (!product) {
+    if (notFound || !product) {
         return (
             <div className="container mx-auto px-4 py-8 text-center">
                 <h1 className="text-2xl font-bold mb-4">Product not found</h1>
@@ -212,7 +151,7 @@ export default function ProductDetailPage(params :{id: string}) {
                         </BreadcrumbItem>
                         <BreadcrumbSeparator />
                         <BreadcrumbItem>
-                            <BreadcrumbLink href={`/shop/${product.category.slug}`}>
+                            <BreadcrumbLink href={`/shop?category=${product.category._id}`}>
                                 {product.category.name}
                             </BreadcrumbLink>
                         </BreadcrumbItem>
@@ -239,7 +178,7 @@ export default function ProductDetailPage(params :{id: string}) {
 
                         {product.productUrl.length > 1 && (
                             <div className="grid grid-cols-4 gap-2">
-                                {product.productUrl.map((url: string, index: number) => (
+                                {product.productUrl.map((url, index) => (
                                     <button
                                         key={index}
                                         onClick={() => setSelectedImage(index)}
@@ -270,7 +209,7 @@ export default function ProductDetailPage(params :{id: string}) {
                                 {product.name}
                             </h1>
                             <p className="text-3xl font-bold text-primary">
-                                ${product.price}
+                                ${product.price.toLocaleString()}
                             </p>
                         </div>
 
@@ -291,16 +230,12 @@ export default function ProductDetailPage(params :{id: string}) {
                         {/* Description */}
                         {product.description && (
                             <div className="border-t border-border pt-4">
-                                <h3 className="font-semibold text-foreground mb-2">
-                                    Description
-                                </h3>
-                                <p className="text-muted-foreground">
-                                    {product.description}
-                                </p>
+                                <h3 className="font-semibold text-foreground mb-2">Description</h3>
+                                <p className="text-muted-foreground">{product.description}</p>
                             </div>
                         )}
 
-                        {/* Quantity Selector */}
+                        {/* Quantity + Actions */}
                         {product.stock > 0 && (
                             <div className="space-y-3">
                                 <p className="font-medium text-foreground">Quantity</p>
@@ -343,14 +278,13 @@ export default function ProductDetailPage(params :{id: string}) {
                                         variant="outline"
                                         size="icon"
                                         className="rounded-full"
-                                        onClick={() => {
-                                            // toast({
-                                            //     title: "Added to wishlist",
-                                            //     description: `${product.name} has been added to your wishlist.`,
-                                            // });
-                                        }}
+                                        onClick={handleWishlist}
+                                        aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
                                     >
-                                        <Heart className="h-5 w-5" />
+                                        <Heart
+                                            className={`h-5 w-5 transition-colors ${isWishlisted ? "text-red-500 fill-red-500" : ""
+                                                }`}
+                                        />
                                     </Button>
                                 </div>
                             </div>
@@ -358,12 +292,8 @@ export default function ProductDetailPage(params :{id: string}) {
 
                         {/* Product Details */}
                         <div className="border-t border-border pt-6">
-                            <h3 className="font-semibold text-foreground mb-3">
-                                Product Details
-                            </h3>
-                            <p className="text-muted-foreground text-sm">
-                                SKU: {product.sku}
-                            </p>
+                            <h3 className="font-semibold text-foreground mb-3">Product Details</h3>
+                            <p className="text-muted-foreground text-sm">SKU: {product.sku}</p>
                         </div>
                     </div>
                 </div>

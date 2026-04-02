@@ -11,7 +11,7 @@ export default function HeroSection() {
     ];
 
     return (
-        <section className="relative w-full overflow-hidden bg-background max-w-7xl mx-auto">
+        <section className="relative w-full overflow-hidden bg-background ">
             <div className="container relative mx-auto px-4 py-12 md:py-20 lg:py-24">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                     {/* Left Column - Text Content */}

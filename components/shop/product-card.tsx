@@ -1,4 +1,3 @@
-// components/product-card.tsx
 "use client";
 
 import { useState } from "react";
@@ -6,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Heart } from "lucide-react";
-// import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 interface Product {
     _id: string;
@@ -26,63 +25,54 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-    // const { toast } = useToast();
     const [isAdding, setIsAdding] = useState(false);
+    const [isWishlisted, setIsWishlisted] = useState(false);
 
     const handleAddToCart = async (e: React.MouseEvent) => {
         e.preventDefault();
+        if (product.stock === 0) return;
+
         setIsAdding(true);
+        try {
+            const existingCart = localStorage.getItem("cart");
+            let cartItems = existingCart ? JSON.parse(existingCart) : [];
 
-        // Get existing cart from localStorage
-        const existingCart = localStorage.getItem("cart");
-        let cartItems = existingCart ? JSON.parse(existingCart) : [];
+            const existingIndex = cartItems.findIndex(
+                (item: any) => item.productId === product._id
+            );
 
-        // Check if product already exists in cart
-        const existingItemIndex = cartItems.findIndex(
-            (item: any) => item.productId === product._id
-        );
-
-        if (existingItemIndex !== -1) {
-            // Update quantity if product exists
-            const newQuantity = cartItems[existingItemIndex].quantity + 1;
-
-            // Check stock limit
-            if (newQuantity > product.stock) {
-                // toast({
-                //     title: "Maximum quantity reached",
-                //     description: `Only ${product.stock} items available in stock.`,
-                //     variant: "destructive",
-                // });
-                setIsAdding(false);
-                return;
+            if (existingIndex !== -1) {
+                const newQuantity = cartItems[existingIndex].quantity + 1;
+                if (newQuantity > product.stock) {
+                    toast.error(`Only ${product.stock} items in stock. You already have ${cartItems[existingIndex].quantity} in your cart.`);
+                    return;
+                }
+                cartItems[existingIndex].quantity = newQuantity;
+            } else {
+                cartItems.push({
+                    productId: product._id,
+                    name: product.name,
+                    price: product.price,
+                    quantity: 1,
+                    image: product.productUrl[0],
+                    stock: product.stock,
+                    category: product.category.name,
+                });
             }
 
-            cartItems[existingItemIndex].quantity = newQuantity;
-        } else {
-            // Add new product to cart
-            cartItems.push({
-                productId: product._id,
-                name: product.name,
-                price: product.price,
-                quantity: 1,
-                image: product.productUrl[0],
-                stock: product.stock,
-                category: product.category.name,
-            });
+            localStorage.setItem("cart", JSON.stringify(cartItems));
+            window.dispatchEvent(new Event("cartUpdated"));
+
+            toast.success(`${product.name} added to cart!`);
+        } finally {
+            setIsAdding(false);
         }
+    };
 
-        // Save to localStorage
-        localStorage.setItem("cart", JSON.stringify(cartItems));
-
-        // Dispatch custom event to update cart count in navbar
-        window.dispatchEvent(new Event("cartUpdated"));
-
-        // toast({
-        // //     title: "Added to cart",
-        // //     description: `${product.name} has been added to your cart.`,
-        // });
-
-        setIsAdding(false);
+    const handleWishlist = (e: React.MouseEvent) => {
+        e.preventDefault();
+        setIsWishlisted((prev) => !prev);
+        toast.success(isWishlisted ? `${product.name} removed from wishlist!` : `${product.name} added to wishlist!`);
     };
 
     return (
@@ -99,17 +89,24 @@ export default function ProductCard({ product }: ProductCardProps) {
 
                     {/* Wishlist Button */}
                     <button
-                        onClick={(e) => {
-                            e.preventDefault();
-                            // toast({
-                            //     title: "Added to wishlist",
-                            //     description: `${product.name} has been added to your wishlist.`,
-                            // });
-                        }}
+                        onClick={handleWishlist}
                         className="absolute top-3 right-3 p-2 rounded-full bg-white/80 hover:bg-white shadow-md transition-colors"
+                        aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
                     >
-                        <Heart className="h-4 w-4 text-gray-600 hover:text-red-500 transition-colors" />
+                        <Heart
+                            className={`h-4 w-4 transition-colors ${isWishlisted ? "text-red-500 fill-red-500" : "text-gray-600 hover:text-red-500"
+                                }`}
+                        />
                     </button>
+
+                    {/* Out of stock overlay */}
+                    {product.stock === 0 && (
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                            <span className="bg-white text-black text-xs font-semibold px-3 py-1 rounded-full">
+                                Out of Stock
+                            </span>
+                        </div>
+                    )}
                 </div>
 
                 <div className="p-4">
@@ -124,7 +121,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
                     <div className="flex items-center justify-between mt-3">
                         <p className="text-2xl font-bold text-primary">
-                            ${product.price}
+                            ${product.price.toLocaleString()}
                         </p>
                         <Button
                             onClick={handleAddToCart}
@@ -136,10 +133,6 @@ export default function ProductCard({ product }: ProductCardProps) {
                             {isAdding ? "Adding..." : "Add to Cart"}
                         </Button>
                     </div>
-
-                    {product.stock === 0 && (
-                        <p className="text-xs text-red-500 mt-2">Out of stock</p>
-                    )}
                 </div>
             </div>
         </Link>

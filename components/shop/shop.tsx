@@ -1,8 +1,7 @@
-// app/shop/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useState, useEffect, useActionState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -25,253 +24,169 @@ import {
     SheetTrigger,
 } from "@/components/ui/sheet";
 import ProductCard from "./product-card";
+import Pagination from "./cardPagination";
+import { getProducts } from "@/services/product/productManagent";
+import ProductCardSkeleton from "./productSkeleton";
 
-// Mock Data
-const mockProducts = [
-    {
-        _id: "1",
-        name: "Chic Transparent Fashion Handbag",
-        price: 61,
-        stock: 50,
-        productUrl: ["https://i.imgur.com/Lqaqz59.jpg"],
-        category: {
-            _id: "cat1",
-            name: "Miscellaneous",
-            slug: "miscellaneous",
-        },
-        status: "ACTIVE",
-        sku: "CHIC-TRANSPARENT-001",
-    },
-    {
-        _id: "2",
-        name: "Premium Cotton Shirt",
-        price: 49,
-        stock: 35,
-        productUrl: ["https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=400&h=400&fit=crop"],
-        category: {
-            _id: "cat2",
-            name: "Men's Wear",
-            slug: "mens-wear",
-        },
-        status: "ACTIVE",
-        sku: "PREMIUM-COTTON-001",
-    },
-    {
-        _id: "3",
-        name: "Classic Crew Neck T-Shirt",
-        price: 29,
-        stock: 100,
-        productUrl: ["https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=400&fit=crop"],
-        category: {
-            _id: "cat2",
-            name: "Men's Wear",
-            slug: "mens-wear",
-        },
-        status: "ACTIVE",
-        sku: "CLASSIC-CREW-001",
-    },
-    {
-        _id: "4",
-        name: "Urban Bomber Jacket",
-        price: 89,
-        stock: 20,
-        productUrl: ["https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=400&h=400&fit=crop"],
-        category: {
-            _id: "cat2",
-            name: "Men's Wear",
-            slug: "mens-wear",
-        },
-        status: "ACTIVE",
-        sku: "URBAN-BOMBER-001",
-    },
-    {
-        _id: "5",
-        name: "Elegant Evening Dress",
-        price: 120,
-        stock: 15,
-        productUrl: ["https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=400&h=400&fit=crop"],
-        category: {
-            _id: "cat3",
-            name: "Women's Wear",
-            slug: "womens-wear",
-        },
-        status: "ACTIVE",
-        sku: "ELEGANT-DRESS-001",
-    },
-    {
-        _id: "6",
-        name: "Casual Denim Jeans",
-        price: 55,
-        stock: 45,
-        productUrl: ["https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=400&h=400&fit=crop"],
-        category: {
-            _id: "cat2",
-            name: "Men's Wear",
-            slug: "mens-wear",
-        },
-        status: "ACTIVE",
-        sku: "CASUAL-DENIM-001",
-    },
-    {
-        _id: "7",
-        name: "Leather Crossbody Bag",
-        price: 75,
-        stock: 30,
-        productUrl: ["https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=400&h=400&fit=crop"],
-        category: {
-            _id: "cat4",
-            name: "Accessories",
-            slug: "accessories",
-        },
-        status: "ACTIVE",
-        sku: "LEATHER-BAG-001",
-    },
-    {
-        _id: "8",
-        name: "Running Sneakers",
-        price: 85,
-        stock: 40,
-        productUrl: ["https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop"],
-        category: {
-            _id: "cat5",
-            name: "Footwear",
-            slug: "footwear",
-        },
-        status: "ACTIVE",
-        sku: "RUNNING-SNEAKERS-001",
-    },
-];
+interface Category {
+    _id: string;
+    name: string;
+    slug: string;
+}
 
-const mockCategories = [
-    { _id: "cat1", name: "Miscellaneous", slug: "miscellaneous" },
-    { _id: "cat2", name: "Men's Wear", slug: "mens-wear" },
-    { _id: "cat3", name: "Women's Wear", slug: "womens-wear" },
-    { _id: "cat4", name: "Accessories", slug: "accessories" },
-    { _id: "cat5", name: "Footwear", slug: "footwear" },
-];
+interface Product {
+    _id: string;
+    name: string;
+    price: number;
+    stock: number;
+    productUrl: string[];
+    category: Category;
+    status: string;
+    sku: string;
+}
 
-export default function ShopPage() {
+interface ProductsResult {
+    data: Product[];
+    total: number;
+    meta?: { page: number; limit: number,total:number,totalPages:number };
+    success: boolean;
+    message?: string;
+}
+
+interface ShopProps {
+    initialData: ProductsResult;
+    categories: Category[];
+}
+
+const MAX_PRICE = 10000;
+const DEBOUNCE_MS = 500;
+const SKELETON_COUNT = 6;
+const DEFAULT_LIMIT = 12;
+
+async function fetchProductsAction(
+    _prev: ProductsResult,
+    queryString: string
+): Promise<ProductsResult> {
+    return await getProducts(queryString);
+}
+
+export default function ShopPage({ initialData, categories }: ShopProps) {
     const router = useRouter();
-    const searchParams = useSearchParams();
+    const [isPending, startTransition] = useTransition();
 
-    const [products] = useState(mockProducts);
-    const [filteredProducts, setFilteredProducts] = useState(mockProducts);
-    const [categories] = useState(mockCategories);
+    const [state, dispatch] = useActionState(fetchProductsAction, initialData);
 
-    // Filter states
-    const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "");
-    const [priceRange, setPriceRange] = useState<[number, number]>([0, 200]);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [priceRange, setPriceRange] = useState<[number, number]>([0, MAX_PRICE]);
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-    const [maxPrice] = useState(200);
-
-    // Mobile filter sheet open state
+    const [currentPage, setCurrentPage] = useState(1);
     const [filterOpen, setFilterOpen] = useState(false);
 
-    // Apply filters
+    const buildAndDispatch = (page: number) => {
+        const params = new URLSearchParams();
+        if (searchTerm) params.set("search", searchTerm);
+        if (selectedCategories.length > 0) params.set("category", selectedCategories.join(","));
+        if (priceRange[0] > 0) params.set("minPrice", String(priceRange[0]));
+        if (priceRange[1] < MAX_PRICE) params.set("maxPrice", String(priceRange[1]));
+        params.set("page", String(page));
+        params.set("limit", String(DEFAULT_LIMIT));
+
+        router.replace(`/shop?${params.toString()}`, { scroll: false });
+
+        startTransition(() => {
+            dispatch(params.toString());
+        });
+    };
+
+    // Reset to page 1 and debounce whenever filters change
     useEffect(() => {
-        let filtered = [...products];
+        setCurrentPage(1);
+        const timer = setTimeout(() => buildAndDispatch(1), DEBOUNCE_MS);
+        return () => clearTimeout(timer);
+    }, [searchTerm, selectedCategories, priceRange]);
 
-        // Search filter
-        if (searchTerm) {
-            filtered = filtered.filter(product =>
-                product.name.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-        }
+    // Immediate dispatch when page changes (no debounce needed)
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+        buildAndDispatch(page);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    };
 
-        // Category filter
-        if (selectedCategories.length > 0) {
-            filtered = filtered.filter(product =>
-                selectedCategories.includes(product.category.slug)
-            );
-        }
-
-        // Price filter
-        filtered = filtered.filter(product =>
-            product.price >= priceRange[0] && product.price <= priceRange[1]
-        );
-
-        setFilteredProducts(filtered);
-    }, [searchTerm, selectedCategories, priceRange, products]);
-
-    const handleCategoryChange = (categorySlug: string) => {
-        setSelectedCategories(prev =>
-            prev.includes(categorySlug)
-                ? prev.filter(c => c !== categorySlug)
-                : [...prev, categorySlug]
+    const handleCategoryChange = (categoryId: string) => {
+        setSelectedCategories((prev) =>
+            prev.includes(categoryId)
+                ? prev.filter((c) => c !== categoryId)
+                : [...prev, categoryId]
         );
     };
 
     const clearFilters = () => {
         setSearchTerm("");
         setSelectedCategories([]);
-        setPriceRange([0, maxPrice]);
+        setPriceRange([0, MAX_PRICE]);
     };
 
-    // Filter Sidebar Component
+    const hasActiveFilters =
+        !!searchTerm || selectedCategories.length > 0 || priceRange[0] > 0 || priceRange[1] < MAX_PRICE;
+
+    const activeFilterCount =
+        selectedCategories.length +
+        (priceRange[0] > 0 || priceRange[1] < MAX_PRICE ? 1 : 0);
+
+    const products: Product[] = state?.data ?? [];
+    const total: number = state?.meta?.total ?? 0;
+    const limit: number = state?.meta?.limit ?? DEFAULT_LIMIT;
+    const totalPages = Math.ceil(total / limit);
+
     const FilterSidebar = () => (
         <div className="space-y-6">
-            {/* Search */}
-            <div>
-                <h3 className="font-semibold text-foreground mb-3">Search</h3>
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        placeholder="Search products..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-9"
-                    />
+            {categories.length > 0 && (
+                <div>
+                    <h3 className="font-semibold text-foreground mb-3">Categories</h3>
+                    <div className="space-y-2">
+                        {categories.map((category) => (
+                            <div key={category._id} className="flex items-center space-x-2">
+                                <Checkbox
+                                    id={`cat-${category._id}`}
+                                    checked={selectedCategories.includes(category._id)}
+                                    onCheckedChange={() => handleCategoryChange(category._id)}
+                                />
+                                <Label
+                                    htmlFor={`cat-${category._id}`}
+                                    className="text-sm text-muted-foreground hover:text-foreground cursor-pointer"
+                                >
+                                    {category.name}
+                                </Label>
+                            </div>
+                        ))}
+                    </div>
                 </div>
-            </div>
+            )}
 
-            {/* Categories */}
-            <div>
-                <h3 className="font-semibold text-foreground mb-3">Categories</h3>
-                <div className="space-y-2">
-                    {categories.map((category) => (
-                        <div key={category._id} className="flex items-center space-x-2">
-                            <Checkbox
-                                id={category.slug}
-                                checked={selectedCategories.includes(category.slug)}
-                                onCheckedChange={() => handleCategoryChange(category.slug)}
-                            />
-                            <Label
-                                htmlFor={category.slug}
-                                className="text-sm text-muted-foreground hover:text-foreground cursor-pointer"
-                            >
-                                {category.name}
-                            </Label>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            {/* Price Range */}
             <div>
                 <h3 className="font-semibold text-foreground mb-3">Price Range</h3>
                 <div className="space-y-4">
                     <Slider
                         min={0}
-                        max={maxPrice}
-                        step={1}
+                        max={MAX_PRICE}
+                        step={10}
                         value={priceRange}
                         onValueChange={(value: any) => setPriceRange(value as [number, number])}
                         className="w-full"
                     />
                     <div className="flex justify-between text-sm text-muted-foreground">
-                        <span>${priceRange[0]}</span>
-                        <span>${priceRange[1]}</span>
+                        <span>${priceRange[0].toLocaleString()}</span>
+                        <span>
+                            {priceRange[1] >= MAX_PRICE
+                                ? `$${MAX_PRICE.toLocaleString()}+`
+                                : `$${priceRange[1].toLocaleString()}`}
+                        </span>
                     </div>
                 </div>
             </div>
 
-            {/* Clear Filters */}
-            {(searchTerm || selectedCategories.length > 0 || priceRange[0] > 0 || priceRange[1] < maxPrice) && (
-                <Button
-                    variant="outline"
-                    onClick={clearFilters}
-                    className="w-full"
-                >
+            {hasActiveFilters && (
+                <Button variant="outline" onClick={clearFilters} className="w-full">
                     <X className="h-4 w-4 mr-2" />
                     Clear Filters
                 </Button>
@@ -282,7 +197,6 @@ export default function ShopPage() {
     return (
         <div className="min-h-screen bg-background">
             <div className="container mx-auto px-4 py-8">
-                {/* Breadcrumb */}
                 <Breadcrumb className="mb-6">
                     <BreadcrumbList>
                         <BreadcrumbItem>
@@ -295,13 +209,10 @@ export default function ShopPage() {
                     </BreadcrumbList>
                 </Breadcrumb>
 
-                {/* Header */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-                    <h1 className="text-3xl md:text-4xl font-bold text-foreground">
-                        Shop
-                    </h1>
-                    <div className="flex items-center gap-4 w-full md:w-auto">
-                        <div className="relative flex-1 md:w-64">
+                    <h1 className="text-3xl md:text-4xl font-bold text-foreground">Shop</h1>
+                    <div className="flex items-center gap-3 w-full md:w-auto">
+                        <div className="relative flex-1 md:w-72">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input
                                 placeholder="Search products..."
@@ -309,14 +220,26 @@ export default function ShopPage() {
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="pl-9"
                             />
+                            {searchTerm && (
+                                <button
+                                    onClick={() => setSearchTerm("")}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                >
+                                    <X className="h-4 w-4" />
+                                </button>
+                            )}
                         </div>
 
-                        {/* Mobile Filter Button */}
                         <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
                             <SheetTrigger asChild>
-                                <Button variant="outline" className="md:hidden">
+                                <Button variant="outline" className="md:hidden shrink-0">
                                     <SlidersHorizontal className="h-4 w-4 mr-2" />
                                     Filters
+                                    {activeFilterCount > 0 && (
+                                        <span className="ml-1 bg-primary text-primary-foreground rounded-full w-4 h-4 text-xs flex items-center justify-center">
+                                            {activeFilterCount}
+                                        </span>
+                                    )}
                                 </Button>
                             </SheetTrigger>
                             <SheetContent side="left" className="w-75 sm:w-100">
@@ -332,34 +255,42 @@ export default function ShopPage() {
                 </div>
 
                 <div className="flex gap-8">
-                    {/* Desktop Sidebar */}
                     <aside className="hidden md:block w-64 shrink-0">
                         <FilterSidebar />
                     </aside>
 
-                    {/* Products Grid */}
                     <div className="flex-1">
-                        {filteredProducts.length === 0 ? (
+                        {isPending ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+                                    <ProductCardSkeleton key={i} />
+                                ))}
+                            </div>
+                        ) : products.length === 0 ? (
                             <div className="text-center py-12">
                                 <p className="text-muted-foreground text-lg">No products found</p>
-                                <Button
-                                    variant="link"
-                                    onClick={clearFilters}
-                                    className="mt-2"
-                                >
-                                    Clear filters
-                                </Button>
+                                {hasActiveFilters && (
+                                    <Button variant="link" onClick={clearFilters} className="mt-2">
+                                        Clear filters
+                                    </Button>
+                                )}
                             </div>
                         ) : (
                             <>
                                 <p className="text-sm text-muted-foreground mb-4">
-                                    Showing {filteredProducts.length} products
+                                    Showing {(currentPage - 1) * limit + 1}–{Math.min(currentPage * limit, total)} of {total} product{total !== 1 ? "s" : ""}
                                 </p>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {filteredProducts.map((product) => (
+                                    {products.map((product) => (
                                         <ProductCard key={product._id} product={product} />
                                     ))}
                                 </div>
+
+                                <Pagination
+                                    currentPage={currentPage}
+                                    totalPages={totalPages}
+                                    onPageChange={handlePageChange}
+                                />
                             </>
                         )}
                     </div>
