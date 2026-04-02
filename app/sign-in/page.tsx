@@ -1,5 +1,4 @@
-// app/sign-in/page.tsx
-// import LogoIcon from "@/components/logo/LogoIcon";
+
 import SignInForm from "@/components/sign-in/sign-in-form";
 import { Card } from "@/components/ui/card";
 import { FieldDescription, FieldLegend, FieldSet } from "@/components/ui/field";
@@ -10,7 +9,10 @@ export const metadata:Metadata = {
     description: "Access your WAREON account to manage your orders, view your wishlist, and update your profile information.",
 }
 
-const SignInPage = () => {
+const  signInPage = async ({searchParams}:{
+    searchParams?:Promise<{redirect?: string}>
+}) => {
+    const params = (await  searchParams) || {};
     return (
         <section className="max-w-7xl mx-auto min-h-svh flex flex-col items-center justify-center">
             <div className="py-5">
@@ -29,11 +31,11 @@ const SignInPage = () => {
                     <FieldDescription className="text-center">
                         Sign in to your WAREON account to continue.
                     </FieldDescription>
-                    <SignInForm />
+                    <SignInForm redirect={params?.redirect} />
                 </FieldSet>
             </Card>
         </section>
     );
 };
 
-export default SignInPage;
+export default signInPage;

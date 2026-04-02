@@ -32,7 +32,7 @@ export const signUpUser = async (_currentState: any, formData: FormData): Promis
     const { confirmPassword, ...requestData } = registerData
 
     try {
-        const response = await fetch(`${process.env.BACKEND_URL}/auth/register`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_API_URL}/auth/register`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

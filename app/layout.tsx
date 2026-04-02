@@ -19,7 +19,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className={poppins.className}
     >
-      <body className="max-w-7xl mx-auto">
+      <body>
         <Toaster />
         <ThemeProvider>{children}</ThemeProvider>
       </body>

@@ -24,7 +24,7 @@ import {
 import { Plus, Minus, Trash2, ShoppingBag, ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { createOrder } from "@/app/services/order/createOrder";
+import { createOrder } from "@/services/order/createOrder";
 import { toast } from "sonner";
 
 interface CartItem {

@@ -7,7 +7,7 @@ interface IHomeLayoutProps {
 }
 
 const HomeLayout: React.FunctionComponent<IHomeLayoutProps> = (props) => {
-    return <main>
+    return <main className="max-w-7xl mx-auto">
         <Navbar />
         <div>
             {props.children}

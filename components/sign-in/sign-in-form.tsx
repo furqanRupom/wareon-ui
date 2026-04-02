@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,11 +11,17 @@ import {
     FieldGroup,
     FieldLabel,
 } from "@/components/ui/field";
-import { signInUser } from "@/app/services/auth/signInUser";
+import { signInUser } from "@/services/auth/signInUser";
+import { toast } from "sonner";
 
-export default function SignInForm() {
+export default function SignInForm({redirect}: {redirect?: string}) {
     const [showPassword, setShowPassword] = useState(false);
     const [state, formAction, isPending] = useActionState(signInUser, null);
+    useEffect(() => {
+        if (state && !state.success && state.message) {
+            toast.error(state.message);
+        }
+    }, [state]);
 
     const getFieldError = (fieldName: string) => {
         if (!state?.errors) return null;
@@ -39,6 +45,7 @@ export default function SignInForm() {
     return (
         <section>
             <form action={formAction} className="space-y-6">
+                {redirect && <input type="hidden" name="redirect" value={redirect} />}
                 <FieldGroup>
                     <Field>
                         <FieldLabel htmlFor="email">Email Address</FieldLabel>

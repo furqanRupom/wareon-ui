@@ -1,32 +1,30 @@
 // components/dashboard/topbar.tsx
-import { Bell, Link, Search, User } from "lucide-react";
+import { Bell, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import UserDropdown from "./userDropdown";
+import { UserInfo } from "@/types/user.interface";
+import { UserRole } from "@/lib/auth-util";
 
 interface TopbarProps {
     user?: {
+        id: string;
         name: string;
         email: string;
-        avatar?: string;
-        role?: string;
+        role: UserRole;
+        createdAt: string;
+        updatedAt: string;
     };
 }
 
 export default function Topbar({ user }: TopbarProps) {
-    const defaultUser = {
+    const defaultUser:UserInfo = {
+        id: "1",
         name: "John Doe",
         email: "admin@wareon.com",
-        avatar: undefined,
-        role: "Administrator",
+        role: "admin",
+        createdAt: "2023-01-01T00:00:00Z",
+        updatedAt: "2023-01-01T00:00:00Z",
     };
 
     const currentUser = user || defaultUser;
@@ -58,58 +56,8 @@ export default function Topbar({ user }: TopbarProps) {
                         <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-primary" />
                     </Button>
 
-                    {/* User Menu */}
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                                <Avatar className="h-8 w-8">
-                                    {currentUser.avatar && (
-                                        <AvatarImage src={currentUser.avatar} alt={currentUser.name} />
-                                    )}
-                                    <AvatarFallback className="bg-primary/10 text-primary">
-                                        {currentUser.name
-                                            .split(" ")
-                                            .map((n) => n[0])
-                                            .join("")}
-                                    </AvatarFallback>
-                                </Avatar>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-56" align="end" forceMount>
-                            <DropdownMenuLabel className="font-normal">
-                                <div className="flex flex-col space-y-1">
-                                    <p className="text-sm font-medium leading-none">
-                                        {currentUser.name}
-                                    </p>
-                                    <p className="text-xs leading-none text-muted-foreground">
-                                        {currentUser.email}
-                                    </p>
-                                    {currentUser.role && (
-                                        <p className="text-xs text-primary mt-1">
-                                            {currentUser.role}
-                                        </p>
-                                    )}
-                                </div>
-                            </DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem asChild>
-                                <Link href="/dashboard/profile" className="cursor-pointer">
-                                    Profile
-                                </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                                <Link href="/dashboard/settings" className="cursor-pointer">
-                                    Settings
-                                </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem asChild>
-                                <Link href="/sign-in" className="cursor-pointer text-destructive">
-                                    Log out
-                                </Link>
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    {/* User Dropdown - Using the existing component */}
+                    <UserDropdown userInfo={currentUser} />
                 </div>
             </div>
         </header>
