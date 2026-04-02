@@ -55,6 +55,7 @@ const adminNavItems: NavSection[] = [
                 icon: "Package",
                 roles: ["admin"],
             },
+            
             {
                 title: "Order Management",
                 href: "/admin/dashboard/order-management",
@@ -96,6 +97,12 @@ const managerNavItems: NavSection[] = [
                 title: "Product Management",
                 href: "/manager/dashboard/product-management",
                 icon: "Package",
+                roles: ["manager"],
+            },
+            {
+                title: "Category Management",
+                href: "/manager/dashboard/category-management",
+                icon: "Tags",
                 roles: ["manager"],
             },
             {
