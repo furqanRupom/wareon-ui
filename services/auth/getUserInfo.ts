@@ -24,7 +24,7 @@ export const getUserInfo = async (): Promise<UserInfo | any> => {
                 throw new Error("No access token found");
             }
 
-            const verifiedToken = jwt.verify(accessToken, process.env.JWT_SECRET as string) as JwtPayload;
+            const verifiedToken = jwt.decode(accessToken) as JwtPayload;
 
             userInfo = {
                 name: verifiedToken.name || "Unknown User",

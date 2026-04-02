@@ -1,48 +1,42 @@
 "use server"
 
-import z from "zod";
+import { serverFetch } from "@/lib/server-fetch";
+import { zodValidator } from "@/lib/zodValidator";
+import { registerValidationZodSchema } from "@/zod/auth.validation";
+import { signInUser } from "./signInUser";
 
-const registerValidationZodSchema = z.object({
-    name: z.string().min(5, "Name is required and must be at least 5 characters long").max(50, "Name must be at most 50 characters long"),
-    email: z.email("Email is required and must be a valid email address"),
-    password: z.string().min(8, "Password is required and must be at least 8 characters long").regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/, "Password must contain at least one uppercase letter, one lowercase letter, one number and one special character"),
-    confirmPassword: z.string().min(8, "Confirm Password is required and must be at least 8 characters long")
-}).refine((data: any) => data.password === data.confirmPassword, {
-    error: "Passwords do not match",
-    path: ["confirmPassword"],
-});
+
 export const signUpUser = async (_currentState: any, formData: FormData): Promise<any> => {
-
-    const registerData = {
-        name: formData.get("name"),
-        email: formData.get("email"),
-        password: formData.get("password"),
-        confirmPassword: formData.get("confirmPassword")
-    }
-    const validateFields = registerValidationZodSchema.safeParse(registerData)
-    if (!validateFields.success) {
-        return {
-            success: false,
-            errors: validateFields.error.issues.map(issue => ({
-                field: issue.path[0],
-                message: issue.message,
-            }))
-        }
-    }
-    const { confirmPassword, ...requestData } = registerData
-
     try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_API_URL}/auth/register`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(requestData),
-        });
+        const registerData = {
+            name: formData.get("name"),
+            email: formData.get("email"),
+            password: formData.get("password"),
+            confirmPassword: formData.get("confirmPassword")
+        }
+
+        if (zodValidator(registerData, registerValidationZodSchema).success === false) {
+            return zodValidator(registerData, registerValidationZodSchema);
+        }
+
+        const validatedPayload: any = zodValidator(registerData, registerValidationZodSchema).data;
+        const { confirmPassword, ...requestData } = validatedPayload
+
+
+        const response = await serverFetch.post('/auth/register',{
+            body:JSON.stringify(requestData)
+        })
 
         const data = await response.json();
+        if (data.success) {
+            await signInUser(_currentState, formData);
+        }
+
         return data;
-    } catch (error) {
+    } catch (error:any) {
+        if (error?.digest?.startsWith('NEXT_REDIRECT')) {
+            throw error;
+        }
         console.error("Error registering user:", error);
     }
 };

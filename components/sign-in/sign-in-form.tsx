@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/field";
 import { signInUser } from "@/services/auth/signInUser";
 import { toast } from "sonner";
+import InputFieldError from "../shared/inputFieldError";
 
 export default function SignInForm({redirect}: {redirect?: string}) {
     const [showPassword, setShowPassword] = useState(false);
@@ -23,15 +24,7 @@ export default function SignInForm({redirect}: {redirect?: string}) {
         }
     }, [state]);
 
-    const getFieldError = (fieldName: string) => {
-        if (!state?.errors) return null;
 
-        const fieldError = state.errors.find(
-            (error: any) => error.field === fieldName
-        );
-
-        return fieldError ? fieldError.message : null;
-    };
 
     // Auto login handlers
     const handleAutoLogin = (email: string, password: string) => {
@@ -56,11 +49,7 @@ export default function SignInForm({redirect}: {redirect?: string}) {
                             placeholder="Enter your email address"
                             autoComplete="email"
                         />
-                        {getFieldError("email") && (
-                            <FieldDescription className="text-destructive">
-                                {getFieldError("email")}
-                            </FieldDescription>
-                        )}
+                        <InputFieldError field="email" state={state} />
                     </Field>
 
                     <Field>
@@ -97,11 +86,7 @@ export default function SignInForm({redirect}: {redirect?: string}) {
                                 )}
                             </Button>
                         </div>
-                        {getFieldError("password") && (
-                            <FieldDescription className="text-destructive">
-                                {getFieldError("password")}
-                            </FieldDescription>
-                        )}
+                        <InputFieldError field="password" state={state} />
                     </Field>
                 </FieldGroup>
 
@@ -126,8 +111,8 @@ export default function SignInForm({redirect}: {redirect?: string}) {
                 <Button
                     type="button"
                     variant="outline"
-                    onClick={() => handleAutoLogin("user@wareon.com", "user123")}
-                    className="w-full rounded-full"
+                    onClick={() => handleAutoLogin("user@wareon.com", "User12345@")}
+                    className="w-full rounded-full cursor-pointer"
                     disabled={isPending}
                 >
                     Sign in as User (user@wareon.com)
@@ -135,8 +120,8 @@ export default function SignInForm({redirect}: {redirect?: string}) {
                 <Button
                     type="button"
                     variant="outline"
-                    onClick={() => handleAutoLogin("manager@wareon.com", "manager123")}
-                    className="w-full rounded-full"
+                    onClick={() => handleAutoLogin("manager@wareon.com", "Manager12345@")}
+                    className="w-full rounded-full cursor-pointer"
                     disabled={isPending}
                 >
                     Sign in as Manager (manager@wareon.com)
@@ -144,8 +129,8 @@ export default function SignInForm({redirect}: {redirect?: string}) {
                 <Button
                     type="button"
                     variant="outline"
-                    onClick={() => handleAutoLogin("admin@wareon.com", "admin123")}
-                    className="w-full rounded-full"
+                    onClick={() => handleAutoLogin("admin@wareon.com", "Admin12345@")}
+                    className="w-full rounded-full cursor-pointer"
                     disabled={isPending}
                 >
                     Sign in as Admin (admin@wareon.com)

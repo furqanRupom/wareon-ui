@@ -1,7 +1,7 @@
 // components/sign-up/sign-up-form.tsx
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,21 +13,19 @@ import {
     FieldLabel,
 } from "@/components/ui/field";
 import { signUpUser } from "@/services/auth/signUpUser";
+import { toast } from "sonner";
+import InputFieldError from "../shared/inputFieldError";
 
 export default function SignUpForm() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [state, formAction, isPending] = useActionState(signUpUser, null);
+    useEffect(() => {
+        if (state && !state.success && state.message) {
+            toast.error(state.message);
+        }
+    }, [state]);
 
-    const getFieldError = (fieldName: string) => {
-        if (!state?.errors as any) return null;
-
-        const fieldError = state.errors.find(
-            (error: any) => error.field === fieldName
-        );
-
-        return fieldError ? fieldError.message : null;
-    };
 
     return (
         <section>
@@ -42,11 +40,7 @@ export default function SignUpForm() {
                             placeholder="Enter your full name"
                             autoComplete="name"
                         />
-                        {getFieldError("name") && (
-                            <FieldDescription className="text-destructive">
-                                {getFieldError("name")}
-                            </FieldDescription>
-                        )}
+                        <InputFieldError field="name" state={state} />
                     </Field>
 
                     <Field>
@@ -58,11 +52,7 @@ export default function SignUpForm() {
                             placeholder="Enter your email address"
                             autoComplete="email"
                         />
-                        {getFieldError("email") && (
-                            <FieldDescription className="text-destructive">
-                                {getFieldError("email")}
-                            </FieldDescription>
-                        )}
+                        <InputFieldError field="email" state={state} />
                     </Field>
 
                     <Field>
@@ -93,11 +83,7 @@ export default function SignUpForm() {
                         <FieldDescription className="text-xs">
                             Password must be at least 6 characters long
                         </FieldDescription>
-                        {getFieldError("password") && (
-                            <FieldDescription className="text-destructive">
-                                {getFieldError("password")}
-                            </FieldDescription>
-                        )}
+                        <InputFieldError field="password" state={state} />
                     </Field>
 
                     <Field>
@@ -125,11 +111,7 @@ export default function SignUpForm() {
                                 )}
                             </Button>
                         </div>
-                        {getFieldError("confirmPassword") && (
-                            <FieldDescription className="text-destructive">
-                                {getFieldError("confirmPassword")}
-                            </FieldDescription>
-                        )}
+                        <InputFieldError field="confirmPassword" state={state} />
                     </Field>
 
                     <Field>
@@ -151,11 +133,7 @@ export default function SignUpForm() {
                                 </Link>
                             </label>
                         </div>
-                        {getFieldError("agreeTerms") && (
-                            <FieldDescription className="text-destructive">
-                                {getFieldError("agreeTerms")}
-                            </FieldDescription>
-                        )}
+                        <InputFieldError field="agreeTerms" state={state} />
                     </Field>
                 </FieldGroup>
 
