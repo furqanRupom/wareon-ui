@@ -24,7 +24,9 @@ export const signUpUser = async (_currentState: any, formData: FormData): Promis
 
 
         const response = await serverFetch.post('/auth/register',{
-            body:JSON.stringify(requestData)
+            body:JSON.stringify(requestData),
+            headers: {"Content-Type": "application/json",
+            }
         })
 
         const data = await response.json();
