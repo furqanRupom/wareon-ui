@@ -1,3 +1,4 @@
+import ChangePasswordForm from "@/components/changePassword";
 import { Metadata } from "next";
 
 export const metadata:Metadata = {
@@ -7,9 +8,17 @@ export const metadata:Metadata = {
 
 const ChangePasswordPage = () => {
     return (
-        <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Change Password</h1>
-            <p>This is where you can change your WAREON account password.</p>
+        <div className="space-y-6">
+            <h1 className="text-2xl font-bold">Change Password</h1>
+            <div className="mx-auto max-w-2xl">
+                <div className="rounded-lg border bg-card p-6">
+                    <p className="mb-6 text-sm text-muted-foreground">
+                        Update your password to keep your account secure. Make sure your new
+                        password is strong and unique.
+                    </p>
+                    <ChangePasswordForm />
+                </div>
+            </div>
         </div>
     );
 }

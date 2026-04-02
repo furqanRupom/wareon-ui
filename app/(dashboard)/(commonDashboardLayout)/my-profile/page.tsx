@@ -1,14 +1,13 @@
+import MyProfile from "@/components/my-profile/myProfile";
+import { getUserInfo } from "@/services/auth/getUserInfo";
+
 export const metadata = {
-    title: "My Profile",
+    title: "My Profile - Wareon",
     description: "View and edit your profile information",
 };
 
-const MyProfilePage = () => {
-    return (
-        <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">My Profile</h1>
-            <p>This is where you can view and edit your profile information.</p>
-        </div>
-    );
+const MyProfilePage = async () => {
+     const userInfo =  await getUserInfo()
+    return <MyProfile userInfo={userInfo} />
 }
 export default MyProfilePage;
