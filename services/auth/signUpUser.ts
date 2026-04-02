@@ -38,5 +38,6 @@ export const signUpUser = async (_currentState: any, formData: FormData): Promis
             throw error;
         }
         console.error("Error registering user:", error);
+        return { success: false, message: `${error.message || "An unexpected error occurred"}` };
     }
 };

@@ -109,5 +109,6 @@ export const signInUser = async (_currentState: any, formData: FormData): Promis
             throw error;
         }
         console.error("Error logging in:", error);
+        return { success: false, message: `${ error.message || "An unexpected error occurred"}` };
     }
 };

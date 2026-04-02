@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { startTransition, useActionState, useEffect, useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -26,13 +26,14 @@ export default function SignInForm({redirect}: {redirect?: string}) {
 
 
 
-    // Auto login handlers
     const handleAutoLogin = (email: string, password: string) => {
-        // Create form data and submit
         const formData = new FormData();
         formData.append("email", email);
         formData.append("password", password);
-        formAction(formData);
+
+        startTransition(() => {
+            formAction(formData);
+        });
     };
 
     return (
