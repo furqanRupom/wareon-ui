@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useActionState, useTransition } from "react";
+import { useState, useEffect, useActionState, useTransition, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
@@ -48,7 +48,7 @@ interface Product {
 interface ProductsResult {
     data: Product[];
     total: number;
-    meta?: { page: number; limit: number,total:number,totalPages:number };
+    meta?: { page: number; limit: number; total: number; totalPages: number };
     success: boolean;
     message?: string;
 }
@@ -56,6 +56,12 @@ interface ProductsResult {
 interface ShopProps {
     initialData: ProductsResult;
     categories: Category[];
+    // Seeded from URL params by the server page
+    initialPage?: number;
+    initialSearch?: string;
+    initialCategories?: string[];
+    initialMinPrice?: number;
+    initialMaxPrice?: number;
 }
 
 const MAX_PRICE = 10000;
@@ -70,16 +76,26 @@ async function fetchProductsAction(
     return await getProducts(queryString);
 }
 
-export default function ShopPage({ initialData, categories }: ShopProps) {
+export default function ShopPage({
+    initialData,
+    categories,
+    initialPage = 1,
+    initialSearch = "",
+    initialCategories = [],
+    initialMinPrice = 0,
+    initialMaxPrice = MAX_PRICE,
+}: ShopProps) {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
+    const isFirstRender = useRef(true);
 
     const [state, dispatch] = useActionState(fetchProductsAction, initialData);
 
-    const [searchTerm, setSearchTerm] = useState("");
-    const [priceRange, setPriceRange] = useState<[number, number]>([0, MAX_PRICE]);
-    const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-    const [currentPage, setCurrentPage] = useState(1);
+    // Seed state from URL params so UI matches the server-rendered data on first paint
+    const [searchTerm, setSearchTerm] = useState(initialSearch);
+    const [priceRange, setPriceRange] = useState<[number, number]>([initialMinPrice, initialMaxPrice]);
+    const [selectedCategories, setSelectedCategories] = useState<string[]>(initialCategories);
+    const [currentPage, setCurrentPage] = useState(initialPage);
     const [filterOpen, setFilterOpen] = useState(false);
 
     const buildAndDispatch = (page: number) => {
@@ -98,8 +114,14 @@ export default function ShopPage({ initialData, categories }: ShopProps) {
         });
     };
 
-    // Reset to page 1 and debounce whenever filters change
+    // Reset to page 1 and debounce whenever filters change.
+    // Skip on first mount — the server already fetched the correct data.
     useEffect(() => {
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
+
         setCurrentPage(1);
         const timer = setTimeout(() => buildAndDispatch(1), DEBOUNCE_MS);
         return () => clearTimeout(timer);
