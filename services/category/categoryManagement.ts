@@ -7,9 +7,9 @@ import { revalidateTag } from "next/cache";
 // crud products, only for admin and manager roles, but get products for all users
 
 
-export async function getCategories() {
+export async function getCategories(queryString?:string) {
     try {
-        const response = await serverFetch.get("/category", {
+        const response = await serverFetch.get(`/category${queryString ? `?${queryString}` : ""}`, {
             next: {
                 tags: [
                     "category-list",

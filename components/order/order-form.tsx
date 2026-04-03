@@ -24,8 +24,8 @@ import {
 import { Plus, Minus, Trash2, ShoppingBag, ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { createOrder } from "@/services/order/createOrder";
 import { toast } from "sonner";
+import { createOrder } from "@/services/order/oderManagement";
 
 interface CartItem {
     productId: string;
@@ -48,10 +48,11 @@ export default function OrderForm() {
         loadCartFromStorage();
 
         // Listen for cart updates
-        window.addEventListener("cartUpdated", loadCartFromStorage);
+        const handleCartUpdate = () => loadCartFromStorage();
+        window.addEventListener("cartUpdated", handleCartUpdate);
 
         return () => {
-            window.removeEventListener("cartUpdated", loadCartFromStorage);
+            window.removeEventListener("cartUpdated", handleCartUpdate);
         };
     }, []);
 
@@ -71,7 +72,7 @@ export default function OrderForm() {
 
         const item = cartItems.find(i => i.productId === productId);
         if (newQuantity > (item?.stock || 0)) {
-            toast.success(`Only ${item?.stock} items available in stock.`);
+            toast.error(`Only ${item?.stock} items available in stock.`);
             return;
         }
 
@@ -108,10 +109,18 @@ export default function OrderForm() {
 
     const getFieldError = (fieldName: string) => {
         if (!state?.errors) return null;
-        const fieldError = state.errors.find(
-            (error: any) => error.field === fieldName
-        );
-        return fieldError ? fieldError.message : null;
+        // Handle different error formats
+        if (Array.isArray(state.errors)) {
+            const fieldError = state.errors.find(
+                (error: any) => error.field === fieldName
+            );
+            return fieldError ? fieldError.message : null;
+        }
+        // If errors is an object
+        if (state.errors[fieldName]) {
+            return state.errors[fieldName];
+        }
+        return null;
     };
 
     const handleSubmit = async (formData: FormData) => {
@@ -121,36 +130,37 @@ export default function OrderForm() {
             return;
         }
 
-        // Add cart items to form data
-        formData.append("items", JSON.stringify(cartItems.map(item => ({
+        // Add cart items to form data - matching IOrderItem interface
+        const orderItems = cartItems.map(item => ({
             productId: item.productId,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity,
-            image: item.image
-        }))));
+            quantity: item.quantity  
+        }));
 
-        // Add totals to form data
-        formData.append("subtotal", subtotal.toString());
-        formData.append("shipping", shipping.toString());
-        formData.append("tax", tax.toString());
-        formData.append("total", total.toString());
+        formData.append("items", JSON.stringify(orderItems));
 
-        const result = await createOrder(null, formData);
+        // Call formAction instead of createOrder directly
+        formAction(formData);
+    };
 
-        if (result.success) {
+    // Handle success/error from state
+    useEffect(() => {
+        if (state?.success) {
             // Clear cart after successful order
             localStorage.removeItem("cart");
             window.dispatchEvent(new Event("cartUpdated"));
 
-            toast.success("Order placed successfully!");
+            toast.success(state.message || "Order placed successfully!");
 
-            router.push(`/order/${result.orderId}`);
-        } else if (result.errors) {
-            // Errors will be handled by the form
-            toast.error("Please fix the errors in the form and try again.");
+            // Redirect to orders page or order confirmation
+            // if (state.orderId) {
+            //     router.push(`/order/${state.orderId}`);
+            // } else {
+            //     router.push("/orders");
+            // }
+        } else if (state?.message && !state?.success) {
+            toast.error(state.message);
         }
-    };
+    }, [state, router]);
 
     if (loading) {
         return (
@@ -203,6 +213,7 @@ export default function OrderForm() {
                                         name="customerName"
                                         type="text"
                                         placeholder="Enter your full name"
+                                        defaultValue={state?.formData?.customerName || ""}
                                         required
                                     />
                                     {getFieldError("customerName") && (
@@ -213,61 +224,19 @@ export default function OrderForm() {
                                 </Field>
 
                                 <Field>
-                                    <FieldLabel htmlFor="email">Email Address</FieldLabel>
-                                    <Input
-                                        id="email"
-                                        name="email"
-                                        type="email"
-                                        placeholder="Enter your email"
-                                        required
-                                    />
-                                    {getFieldError("email") && (
-                                        <FieldDescription className="text-destructive">
-                                            {getFieldError("email")}
-                                        </FieldDescription>
-                                    )}
-                                </Field>
-
-                                <Field>
-                                    <FieldLabel htmlFor="phone">Phone Number</FieldLabel>
-                                    <Input
-                                        id="phone"
-                                        name="phone"
-                                        type="tel"
-                                        placeholder="Enter your phone number"
-                                        required
-                                    />
-                                    {getFieldError("phone") && (
-                                        <FieldDescription className="text-destructive">
-                                            {getFieldError("phone")}
-                                        </FieldDescription>
-                                    )}
-                                </Field>
-
-                                <Field>
-                                    <FieldLabel htmlFor="address">Shipping Address</FieldLabel>
-                                    <Textarea
-                                        id="address"
-                                        name="address"
-                                        placeholder="Enter your full address"
-                                        rows={3}
-                                        required
-                                    />
-                                    {getFieldError("address") && (
-                                        <FieldDescription className="text-destructive">
-                                            {getFieldError("address")}
-                                        </FieldDescription>
-                                    )}
-                                </Field>
-
-                                <Field>
                                     <FieldLabel htmlFor="notes">Order Notes (Optional)</FieldLabel>
                                     <Textarea
                                         id="notes"
                                         name="notes"
                                         placeholder="Special instructions, delivery preferences, etc."
-                                        rows={2}
+                                        rows={3}
+                                        defaultValue={state?.formData?.notes || ""}
                                     />
+                                    {getFieldError("notes") && (
+                                        <FieldDescription className="text-destructive">
+                                            {getFieldError("notes")}
+                                        </FieldDescription>
+                                    )}
                                 </Field>
                             </FieldGroup>
                         </CardContent>
@@ -284,7 +253,7 @@ export default function OrderForm() {
                             <Button
                                 type="submit"
                                 size={"lg"}
-                                className="flex-1 rounded-full "
+                                className="flex-1 rounded-full"
                                 disabled={isPending}
                             >
                                 {isPending ? "Placing Order..." : "Place Order"}
@@ -319,7 +288,7 @@ export default function OrderForm() {
                                     <div className="flex-1 min-w-0">
                                         <p className="font-medium text-sm line-clamp-2">{item.name}</p>
                                         <p className="text-primary font-semibold text-sm mt-1">
-                                            ${item.price}
+                                            ${item.price.toFixed(2)}
                                         </p>
                                         <div className="flex items-center justify-between mt-2">
                                             <div className="flex items-center gap-1">

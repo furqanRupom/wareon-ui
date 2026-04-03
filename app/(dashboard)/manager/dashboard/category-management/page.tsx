@@ -24,7 +24,8 @@ const ProductManagementPage = async ({
 }) => {
     const searchParamsObj = await searchParams;
     const queryString = queryStringFormatter(searchParamsObj);
-    const categoryResult = await getCategories();
+    const categoryResult = await getCategories(queryString);
+    console.log(categoryResult)
     
 
     const totalPages = Math.ceil(

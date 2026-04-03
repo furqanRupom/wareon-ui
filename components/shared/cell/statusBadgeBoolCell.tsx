@@ -13,8 +13,8 @@ export function StatusBadgeBoolCell({
 
 
     return (
-        <Badge variant={isActive ? "destructive" : "default"}>
-            {isActive ? "Inactive" : "Active"}
+        <Badge variant={isActive ? "default" : "destructive"}>
+            {isActive ? "Active" : "Inactive"}
         </Badge>
     );
 }
