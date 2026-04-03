@@ -7,7 +7,6 @@ export const createProductSchema = z.object({
     stock: z.number().min(0, "Stock must be a positive number").optional(),
     minStockThreshold: z.number().min(0, "Minimum stock threshold must be a positive number").optional(),
     productUrl: z.array(z.string().url("Each product URL must be a valid URL")).optional(),
-    status: z.enum(["active", "inactive"]).optional(),
     sku: z.string().optional(),
 })
 export const updateProductSchema = z.object({
@@ -17,6 +16,5 @@ export const updateProductSchema = z.object({
     stock: z.number().min(0, "Stock must be a positive number").optional(),
     minStockThreshold: z.number().min(0, "Minimum stock threshold must be a positive number").optional(),
     productUrl: z.array(z.string().url("Each product URL must be a valid URL")).optional(),
-    status: z.enum(["active", "inactive"]).optional(),
     sku: z.string().optional(),
 })

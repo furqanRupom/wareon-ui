@@ -46,7 +46,6 @@ export async function createProduct(_prevState: any, formData: FormData) {
         stock: formData.get("stock") ? Number(formData.get("stock")) : undefined,
         minStockThreshold: formData.get("minStockThreshold") ? Number(formData.get("minStockThreshold")) : undefined,
         productUrl: formData.getAll("productUrl").filter(url => url) as string[],
-        status: formData.get("status") as "active" | "inactive" | undefined,
         sku: formData.get("sku") as string | undefined,
     };
 
@@ -101,9 +100,9 @@ export async function updateProduct(productId: string, _prevState: any, formData
         stock: formData.get("stock") ? Number(formData.get("stock")) : undefined,
         minStockThreshold: formData.get("minStockThreshold") ? Number(formData.get("minStockThreshold")) : undefined,
         productUrl: formData.getAll("productUrl").filter(url => url) as string[],
-        status: formData.get("status") as "active" | "inactive" | undefined,
         sku: formData.get("sku") as string | undefined,
     };
+    console.log(validationPayload)
 
     const validatedPayload = zodValidator(validationPayload, updateProductSchema);
 

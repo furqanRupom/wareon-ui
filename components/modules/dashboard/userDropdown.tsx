@@ -1,5 +1,6 @@
 "use client";
 
+import LogoutButton from "@/components/shared/logoutButton";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -12,7 +13,6 @@ import {
 import { UserInfo } from "@/types/user.interface";
 import { Settings, User } from "lucide-react";
 import Link from "next/link";
-import LogoutButton from "../shared/logoutButton";
 
 interface UserDropdownProps {
     userInfo: UserInfo;

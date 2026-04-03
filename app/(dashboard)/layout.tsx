@@ -1,6 +1,8 @@
 // app/dashboard/layout.tsx
-import DashboardNavbar from "@/components/dashboard/dashboardNavbar";
-import DashboardSidebar from "@/components/dashboard/dashboardSidebar";
+
+import DashboardNavbar from "@/components/modules/dashboard/dashboardNavbar";
+import DashboardSidebar from "@/components/modules/dashboard/dashboardSidebar";
+
 export const dynamic = "force-dynamic";
 
 

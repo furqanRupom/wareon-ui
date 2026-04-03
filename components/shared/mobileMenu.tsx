@@ -6,9 +6,9 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { Button } from "../ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "../ui/sheet";
-import UserDropdown from "../dashboard/userDropdown";
 import { Input } from "../ui/input";
 import { Badge } from "../ui/badge";
+import UserDropdown from "../modules/dashboard/userDropdown";
 
 interface MobileMenuProps {
     navItems: Array<{ href: string; label: string }>;

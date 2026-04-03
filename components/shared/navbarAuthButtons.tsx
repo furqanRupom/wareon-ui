@@ -4,8 +4,8 @@ import { UserInfo } from "@/types/user.interface";
 import { LayoutDashboard, User } from "lucide-react";
 import Link from "next/link";
 import { Button } from "../ui/button";
-import UserDropdown from "../dashboard/userDropdown";
 import { useAuthToken } from "@/hooks/useAuthTokens";
+import UserDropdown from "../modules/dashboard/userDropdown";
 
 interface NavbarAuthButtonsProps {
     initialHasToken: boolean;
