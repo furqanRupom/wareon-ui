@@ -1,12 +1,11 @@
 "use client";
 
 import { UserInfo } from "@/types/user.interface";
-import { LayoutDashboard, LogInIcon, User } from "lucide-react";
+import { LayoutDashboard, User } from "lucide-react";
 import Link from "next/link";
 import { Button } from "../ui/button";
 import UserDropdown from "../dashboard/userDropdown";
 import { useAuthToken } from "@/hooks/useAuthTokens";
-import { LoginIcon } from "@hugeicons/core-free-icons";
 
 interface NavbarAuthButtonsProps {
     initialHasToken: boolean;
@@ -42,17 +41,15 @@ export default function NavbarAuthButtons({
     }
 
     return (
-        <Link href="/sign-in">
-            <Button
-                variant="outline"
-                className="flex-1 gap-2 hover:text-primary hover:border-primary"
-                asChild
-            >
-                <Link href="/sign-in">
-                    <User className="w-5 h-5" />
-                    Sign In
-                </Link>
-            </Button>
-        </Link>
+        <Button
+            variant="outline"
+            className="flex-1 gap-2 hover:text-primary hover:border-primary"
+            asChild
+        >
+            <Link href="/sign-in">
+                <User className="w-5 h-5" />
+                Sign In
+            </Link>
+        </Button>
     );
 }
