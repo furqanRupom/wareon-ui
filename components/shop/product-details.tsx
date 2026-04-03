@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Heart, Minus, Plus, Check, Loader2 } from "lucide-react";
+import { ShoppingCart, Heart, Minus, Plus, Check } from "lucide-react";
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -31,37 +31,15 @@ interface Product {
     description?: string;
 }
 
-export default function ProductDetailPage({ id }: { id: string }) {
-    const [product, setProduct] = useState<Product | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [notFound, setNotFound] = useState(false);
+interface ProductDetailPageProps {
+    product: Product;
+}
+
+export default function ProductDetailPage({ product }: ProductDetailPageProps) {
     const [quantity, setQuantity] = useState(1);
     const [selectedImage, setSelectedImage] = useState(0);
     const [isAdding, setIsAdding] = useState(false);
     const [isWishlisted, setIsWishlisted] = useState(false);
-
-    useEffect(() => {
-        const fetchProduct = async () => {
-            setLoading(true);
-            setNotFound(false);
-            try {
-                const res = await fetch(`/api/products/${id}`);
-                const data = await res.json();
-                if (data.success && data.data) {
-                    setProduct(data.data);
-                } else {
-                    setNotFound(true);
-                }
-            } catch (err) {
-                console.error("Failed to fetch product:", err);
-                setNotFound(true);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        if (id) fetchProduct();
-    }, [id]);
 
     const handleAddToCart = async () => {
         if (!product) return;
@@ -81,6 +59,7 @@ export default function ProductDetailPage({ id }: { id: string }) {
                 const newQuantity = cartItems[existingIndex].quantity + requestedQty;
                 if (newQuantity > product.stock) {
                     toast.error(`Only ${product.stock} items in stock. You already have ${cartItems[existingIndex].quantity} in your cart.`);
+                    setIsAdding(false);
                     return;
                 }
                 cartItems[existingIndex].quantity = newQuantity;
@@ -100,6 +79,9 @@ export default function ProductDetailPage({ id }: { id: string }) {
             window.dispatchEvent(new Event("cartUpdated"));
 
             toast.success(`${product.name} added to cart!`);
+        } catch (error) {
+            console.error("Error adding to cart:", error);
+            toast.error("Failed to add product to cart");
         } finally {
             setIsAdding(false);
         }
@@ -117,15 +99,7 @@ export default function ProductDetailPage({ id }: { id: string }) {
         toast.success(isWishlisted ? `${product?.name} removed from wishlist!` : `${product?.name} added to wishlist!`);
     };
 
-    if (loading) {
-        return (
-            <div className="container mx-auto px-4 py-8 flex justify-center items-center h-64">
-                <Loader2 className="animate-spin h-12 w-12 text-muted-foreground" />
-            </div>
-        );
-    }
-
-    if (notFound || !product) {
+    if (!product) {
         return (
             <div className="container mx-auto px-4 py-8 text-center">
                 <h1 className="text-2xl font-bold mb-4">Product not found</h1>
@@ -167,16 +141,22 @@ export default function ProductDetailPage({ id }: { id: string }) {
                     {/* Product Images */}
                     <div className="space-y-4">
                         <div className="aspect-square relative rounded-2xl overflow-hidden bg-muted">
-                            <Image
-                                src={product.productUrl[selectedImage]}
-                                alt={product.name}
-                                fill
-                                className="object-cover"
-                                priority
-                            />
+                            {product.productUrl && product.productUrl.length > 0 ? (
+                                <Image
+                                    src={product.productUrl[selectedImage]}
+                                    alt={product.name}
+                                    fill
+                                    className="object-cover"
+                                    priority
+                                />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                                    <span className="text-gray-400">No image available</span>
+                                </div>
+                            )}
                         </div>
 
-                        {product.productUrl.length > 1 && (
+                        {product.productUrl && product.productUrl.length > 1 && (
                             <div className="grid grid-cols-4 gap-2">
                                 {product.productUrl.map((url, index) => (
                                     <button
@@ -294,6 +274,11 @@ export default function ProductDetailPage({ id }: { id: string }) {
                         <div className="border-t border-border pt-6">
                             <h3 className="font-semibold text-foreground mb-3">Product Details</h3>
                             <p className="text-muted-foreground text-sm">SKU: {product.sku}</p>
+                            {product.status && (
+                                <p className="text-muted-foreground text-sm mt-1">
+                                    Status: <span className="capitalize">{product.status.toLowerCase()}</span>
+                                </p>
+                            )}
                         </div>
                     </div>
                 </div>

@@ -1,6 +1,7 @@
 // shop/[id]/page.tsx
 
 import ProductDetailPage from "@/components/shop/product-details";
+import { getProduct } from "@/services/product/productManagent";
 
 export const metadata = {
     title: "Shop - Wareon",
@@ -8,6 +9,8 @@ export const metadata = {
         "Explore our wide range of products across various categories. Find the best deals and latest arrivals at Wareon.",
 };
 
-export default function Page({ params }: { params: { id: string } }) {
-    return <ProductDetailPage id={params.id} />;
+export default async  function Page({ params }: { params: { shopId: string } }) {
+     const {shopId} = await params
+     const result = await getProduct(shopId)
+    return <ProductDetailPage product={result.data || {}} />;
 }
