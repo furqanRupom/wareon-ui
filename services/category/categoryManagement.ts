@@ -1,7 +1,7 @@
+"use server"
 import { serverFetch } from "@/lib/server-fetch";
 import { zodValidator } from "@/lib/zodValidator";
 import { createCategorySchema, updateCategorySchema } from "@/zod/category.validation";
-import { createProductSchema, updateProductSchema } from "@/zod/product.validation";
 import { revalidateTag } from "next/cache";
 
 // crud products, only for admin and manager roles, but get products for all users

@@ -1,3 +1,5 @@
+"use server"
+
 import { serverFetch } from "@/lib/server-fetch";
 import { zodValidator } from "@/lib/zodValidator";
 import { createProductSchema, updateProductSchema } from "@/zod/product.validation";
