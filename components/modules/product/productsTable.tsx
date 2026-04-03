@@ -4,7 +4,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { IProducts } from "@/types/product.interface";
+import { ICategory, IProducts } from "@/types/product.interface";
 import ManagementTable from "@/components/shared/managementTable";
 import { productColumns } from "./productColumns";
 import ProductViewDetailDialog from "./productViewDetailsDialog";
@@ -14,9 +14,10 @@ import { deleteProduct } from "@/services/product/productManagent";
 
 interface ProductsTableProps {
     products: IProducts[];
+    categories: ICategory[]
 }
 
-const ProductsTable = ({ products }: ProductsTableProps) => {
+const ProductsTable = ({ products,categories }: ProductsTableProps) => {
     const router = useRouter();
     const [, startTransition] = useTransition();
     const [deletingProduct, setDeletingProduct] = useState<IProducts | null>(null);
@@ -75,7 +76,7 @@ const ProductsTable = ({ products }: ProductsTableProps) => {
                 open={!!editingProduct}
                 onClose={() => setEditingProduct(null)}
                 product={editingProduct!}
-                categories={[]}
+                categories={categories}
                 onSuccess={() => {
                     setEditingProduct(null);
                     handleRefresh();

@@ -41,9 +41,27 @@ const ProductFormDialog = ({
         null
     );
 
-    const [imageUrls, setImageUrls] = useState<string[]>(product?.productUrl || []);
+
+    const [imageUrls, setImageUrls] = useState<string[]>([]);
     const [newImageUrl, setNewImageUrl] = useState("");
     const prevStateRef = useRef(state);
+
+    // Reset image URLs when product changes or dialog opens
+    useEffect(() => {
+        if (open && product?.productUrl && product.productUrl.length > 0) {
+            setImageUrls(product.productUrl);
+        } else if (open && !product?.productUrl) {
+            setImageUrls([]);
+        }
+    }, [open, product]);
+
+    // Also reset when dialog closes
+    useEffect(() => {
+        if (!open) {
+            setImageUrls([]);
+            setNewImageUrl("");
+        }
+    }, [open]);
 
     const addImageUrl = () => {
         if (newImageUrl && newImageUrl.trim()) {
@@ -121,7 +139,7 @@ const ProductFormDialog = ({
                     className="flex flex-col flex-1 min-h-0"
                 >
                     <div className="flex-1 overflow-y-auto px-6 space-y-4 pb-4">
-                        {/* Basic Information */}
+                        {/* Basic Information - Keep your existing fields */}
                         <Field>
                             <FieldLabel htmlFor="name">Product Name *</FieldLabel>
                             <Input
@@ -133,13 +151,14 @@ const ProductFormDialog = ({
                             <InputFieldError field="name" state={state} />
                         </Field>
 
+                        {/* Category Field */}
                         <Field>
                             <FieldLabel htmlFor="category">Category *</FieldLabel>
                             <select
                                 id="category"
                                 name="category"
                                 className="w-full rounded-md border border-input bg-background px-3 py-2"
-                                defaultValue={state?.formData?.category || product?.category?._id || product?.category || ""}
+                                defaultValue={state?.formData?.category || product?.category?._id || product?.category.name || ""}
                             >
                                 <option value="">Select category</option>
                                 {categories.map((category) => (
@@ -151,6 +170,7 @@ const ProductFormDialog = ({
                             <InputFieldError field="category" state={state} />
                         </Field>
 
+                        {/* Price and Stock Fields */}
                         <div className="grid grid-cols-2 gap-4">
                             <Field>
                                 <FieldLabel htmlFor="price">Price *</FieldLabel>
@@ -178,6 +198,7 @@ const ProductFormDialog = ({
                             </Field>
                         </div>
 
+                        {/* SKU and Min Stock Threshold */}
                         <div className="grid grid-cols-2 gap-4">
                             <Field>
                                 <FieldLabel htmlFor="sku">SKU</FieldLabel>
@@ -203,6 +224,7 @@ const ProductFormDialog = ({
                             </Field>
                         </div>
 
+                        {/* Status Field */}
                         <Field>
                             <FieldLabel htmlFor="status">Status</FieldLabel>
                             <select
@@ -217,11 +239,11 @@ const ProductFormDialog = ({
                             <InputFieldError field="status" state={state} />
                         </Field>
 
-                        {/* Product Images Section - URL based only */}
+                        {/* Product Images Section */}
                         <div className="space-y-3">
                             <Label>Product Images URLs (Max 5)</Label>
 
-                            {/* Existing Image URLs List */}
+                            {/* Display existing image URLs */}
                             {imageUrls.length > 0 && (
                                 <div className="space-y-3">
                                     {imageUrls.map((url, index) => (

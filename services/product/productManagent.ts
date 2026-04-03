@@ -102,7 +102,6 @@ export async function updateProduct(productId: string, _prevState: any, formData
         productUrl: formData.getAll("productUrl").filter(url => url) as string[],
         sku: formData.get("sku") as string | undefined,
     };
-    console.log(validationPayload)
 
     const validatedPayload = zodValidator(validationPayload, updateProductSchema);
 
@@ -131,6 +130,7 @@ export async function updateProduct(productId: string, _prevState: any, formData
         });
 
         const result = await response.json();
+        console.log(result)
         if (result.success) {
             revalidateTag('product-list', { expire: 0 });
             revalidateTag('product-dashboard-meta', { expire: 0 });

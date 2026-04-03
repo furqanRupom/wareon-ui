@@ -6,15 +6,7 @@ import { revalidateTag } from "next/cache";
 
 // crud products, only for admin and manager roles, but get products for all users
 
-/**
- * 
- * @param queryString 
- * @returns 
- * ?search={search by name}
- * ?category={categoryId}
- * ?minPrice={minPrice}&maxPrice={maxPrice}
- * ?limit={limit}&page={page}
- */
+
 export async function getCategories() {
     try {
         const response = await serverFetch.get("/category", {

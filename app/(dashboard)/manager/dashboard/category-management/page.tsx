@@ -1,4 +1,6 @@
 
+import CategoryManagementHeader from "@/components/modules/category/categoryManagementHeader";
+import CategoryTable from "@/components/modules/category/categoryTables";
 import ProductManagementHeader from "@/components/modules/product/productManagementHeader";
 import ProductsTable from "@/components/modules/product/productsTable";
 import TablePagination from "@/components/shared/tablePagination";
@@ -10,9 +12,9 @@ import { Metadata } from "next";
 import { Suspense } from "react";
 
 
-export const  metadata:Metadata = {
-    title:"Product Management - Wareon",
-    description:"Handle products"
+export const metadata: Metadata = {
+    title: "Category Management - Wareon",
+    description: "Handle products categories"
 }
 
 const ProductManagementPage = async ({
@@ -22,24 +24,24 @@ const ProductManagementPage = async ({
 }) => {
     const searchParamsObj = await searchParams;
     const queryString = queryStringFormatter(searchParamsObj);
-    const productResult = await getProducts(queryString);
-    const categoryResult = await getCategories()
+    const categoryResult = await getCategories();
+    
 
     const totalPages = Math.ceil(
-        (productResult?.meta?.total || 1) / (productResult?.meta?.limit || 1)
+        (categoryResult?.meta?.total || 1) / (categoryResult?.meta?.limit || 1)
     );
 
     return (
         <div className="space-y-6">
-            <ProductManagementHeader categories={categoryResult?.data || []} />
+            <CategoryManagementHeader categories={categoryResult?.data || []} />
 
             {/* Search, Filters */}
             {/* <ProductsFilter /> */}
 
             <Suspense fallback={<TableSkeleton columns={8} rows={10} />}>
-                <ProductsTable products={productResult?.data || []} categories={categoryResult?.data || []} />
+                <CategoryTable categories={categoryResult?.data || []} />
                 <TablePagination
-                    currentPage={productResult?.meta?.page || 1}
+                    currentPage={categoryResult?.meta?.page || 1}
                     totalPages={totalPages || 1}
                 />
             </Suspense>

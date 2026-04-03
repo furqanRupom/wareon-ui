@@ -3,14 +3,15 @@
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import ProductFormDialog from "./productFormDialog";
+import CategoryManagementDialog from "./categoryManagementDialog";
 import ManagementPageHeader from "@/components/shared/managementPageHeader";
 import { ICategory } from "@/types/product.interface";
 
-interface ProductsManagementHeaderProps {
-    categories: ICategory[]
+interface CategoryManagementHeaderProps {
+    categories?: ICategory[];
 }
-const ProductManagementHeader = ({ categories}: ProductsManagementHeaderProps) => {
+
+const CategoryManagementHeader = ({ categories }: CategoryManagementHeaderProps) => {
     const router = useRouter();
     const [, startTransition] = useTransition();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -21,7 +22,7 @@ const ProductManagementHeader = ({ categories}: ProductsManagementHeaderProps) =
         });
     };
 
-    //force remount to reset state of form
+    // Force remount to reset state of form
     const [dialogKey, setDialogKey] = useState(0);
 
     const handleOpenDialog = () => {
@@ -35,19 +36,18 @@ const ProductManagementHeader = ({ categories}: ProductsManagementHeaderProps) =
 
     return (
         <>
-            <ProductFormDialog
+            <CategoryManagementDialog
                 key={dialogKey}
                 open={isDialogOpen}
-                categories={categories}
                 onClose={handleCloseDialog}
                 onSuccess={handleSuccess}
             />
 
             <ManagementPageHeader
-                title="Product Management"
-                description="Manage prodducts"
+                title="Category Management"
+                description="Manage product categories"
                 action={{
-                    label: "Add Product",
+                    label: "Add Category",
                     icon: Plus,
                     onClick: handleOpenDialog,
                 }}
@@ -56,4 +56,4 @@ const ProductManagementHeader = ({ categories}: ProductsManagementHeaderProps) =
     );
 };
 
-export default ProductManagementHeader;
+export default CategoryManagementHeader;
