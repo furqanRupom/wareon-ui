@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import Shop from "@/components/shop/shop";
 import { queryStringFormatter } from "@/lib/formatters";
 import { getProducts } from "@/services/product/productManagent";
+import { ShopSkeleton } from "@/components/shop/shopSkeleton";
 
 export const metadata = {
     title: "Shop - Wareon",
@@ -19,7 +20,7 @@ export default async function Page({
     const productsResult = await getProducts(queryString); // object { data: Product[], total: number, meta: { page: number, limit: number }, success: boolean, message?: string }
     console.log(productsResult)
     return (
-        <Suspense fallback={<div>Loading shop...</div>}>
+        <Suspense fallback={<ShopSkeleton />}>
             <Shop initialData={productsResult} categories={[]} />
         </Suspense>
     );
