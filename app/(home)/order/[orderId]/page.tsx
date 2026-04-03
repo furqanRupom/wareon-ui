@@ -19,49 +19,15 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-
-// Mock order data
-const mockOrders: Record<string, any> = {
-    "order_123": {
-        id: "order_123",
-        customerName: "John Doe",
-        email: "john@example.com",
-        phone: "+1 234 567 8900",
-        address: "123 Main St, New York, NY 10001",
-        notes: "Please leave at the door",
-        items: [
-            {
-                productId: "1",
-                name: "Chic Transparent Fashion Handbag",
-                price: 61,
-                quantity: 2,
-                image: "https://i.imgur.com/Lqaqz59.jpg",
-            },
-            {
-                productId: "2",
-                name: "Premium Cotton Shirt",
-                price: 49,
-                quantity: 1,
-                image: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=200&h=200&fit=crop",
-            },
-        ],
-        subtotal: 171,
-        shipping: 10,
-        tax: 17.1,
-        total: 198.1,
-        status: "confirmed",
-        orderDate: "2024-03-15T10:30:00Z",
-        estimatedDelivery: "2024-03-20T10:30:00Z",
-    },
-};
+import { getOrderById } from "@/services/order/oderManagement";
 
 const orderStatuses = {
-    pending: { label: "Pending", icon: Package, color: "text-yellow-500" },
-    confirmed: { label: "Confirmed", icon: CheckCircle, color: "text-blue-500" },
-    processing: { label: "Processing", icon: Package, color: "text-purple-500" },
-    shipped: { label: "Shipped", icon: Truck, color: "text-orange-500" },
-    delivered: { label: "Delivered", icon: CheckCircle, color: "text-green-500" },
-    cancelled: { label: "Cancelled", icon: Package, color: "text-red-500" },
+    pending: { label: "Pending", icon: Package, color: "text-yellow-500", bgColor: "bg-yellow-50 dark:bg-yellow-950" },
+    confirmed: { label: "Confirmed", icon: CheckCircle, color: "text-blue-500", bgColor: "bg-blue-50 dark:bg-blue-950" },
+    processing: { label: "Processing", icon: Package, color: "text-purple-500", bgColor: "bg-purple-50 dark:bg-purple-950" },
+    shipped: { label: "Shipped", icon: Truck, color: "text-orange-500", bgColor: "bg-orange-50 dark:bg-orange-950" },
+    delivered: { label: "Delivered", icon: CheckCircle, color: "text-green-500", bgColor: "bg-green-50 dark:bg-green-950" },
+    cancelled: { label: "Cancelled", icon: Package, color: "text-red-500", bgColor: "bg-red-50 dark:bg-red-950" },
 };
 
 interface OrderPageProps {
@@ -71,26 +37,42 @@ interface OrderPageProps {
 }
 
 export default async function OrderDetailPage({ params }: OrderPageProps) {
-    const order = mockOrders[params.orderId];
+    const { orderId } = await params;
 
-    if (!order) {
+    let orderData;
+    try {
+        const response = await getOrderById(orderId);
+        console.log('Order response:', response);
+
+        if (!response.success || !response.data) {
+            throw new Error(response.message || 'Order not found');
+        }
+        orderData = response.data;
+    } catch (error) {
+        console.error('Error fetching order:', error);
         return (
             <div className="min-h-screen bg-background py-8">
                 <div className="container mx-auto px-4 text-center">
                     <h1 className="text-2xl font-bold mb-4">Order Not Found</h1>
                     <p className="text-muted-foreground mb-6">
-                        The order you're looking for doesn't exist.
+                        The order you're looking for doesn't exist or couldn't be loaded.
                     </p>
                     <Link href="/shop">
-                        <Button>Continue Shopping</Button>
+                        <Button className="rounded-full">Continue Shopping</Button>
                     </Link>
                 </div>
             </div>
         );
     }
 
-    const status = orderStatuses[order.status as keyof typeof orderStatuses];
+    const order = orderData;
+    const status = orderStatuses[order.status as keyof typeof orderStatuses] || orderStatuses.pending;
     const StatusIcon = status.icon;
+
+    // Format dates
+    const orderDate = new Date(order.createdAt);
+    const estimatedDelivery = new Date(orderDate);
+    estimatedDelivery.setDate(orderDate.getDate() + 7); // Default 7 days delivery
 
     return (
         <div className="min-h-screen bg-background py-8">
@@ -103,11 +85,11 @@ export default async function OrderDetailPage({ params }: OrderPageProps) {
                         </BreadcrumbItem>
                         <BreadcrumbSeparator />
                         <BreadcrumbItem>
-                            <BreadcrumbLink href="/order">Order</BreadcrumbLink>
+                            <BreadcrumbLink href="/order">Orders</BreadcrumbLink>
                         </BreadcrumbItem>
                         <BreadcrumbSeparator />
                         <BreadcrumbItem>
-                            <BreadcrumbPage>Order #{order.id.slice(-8)}</BreadcrumbPage>
+                            <BreadcrumbPage>Order #{order._id.slice(-8)}</BreadcrumbPage>
                         </BreadcrumbItem>
                     </BreadcrumbList>
                 </Breadcrumb>
@@ -118,8 +100,12 @@ export default async function OrderDetailPage({ params }: OrderPageProps) {
                             Order Details
                         </h1>
                         <p className="text-muted-foreground mt-2">
-                            Order #{order.id.slice(-8)} • Placed on{" "}
-                            {new Date(order.orderDate).toLocaleDateString()}
+                            Order #{order._id.slice(-8)} • Placed on{" "}
+                            {orderDate.toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                            })}
                         </p>
                     </div>
                     <Link href="/shop">
@@ -139,7 +125,7 @@ export default async function OrderDetailPage({ params }: OrderPageProps) {
                                 <CardTitle>Order Status</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="flex items-center gap-3 p-4 bg-muted/30 rounded-lg">
+                                <div className={`flex items-center gap-3 p-4 rounded-lg ${status.bgColor}`}>
                                     <StatusIcon className={`h-8 w-8 ${status.color}`} />
                                     <div>
                                         <p className="font-semibold text-lg">{status.label}</p>
@@ -155,7 +141,7 @@ export default async function OrderDetailPage({ params }: OrderPageProps) {
                                         <div>
                                             <p className="text-xs text-muted-foreground">Order Date</p>
                                             <p className="text-sm font-medium">
-                                                {new Date(order.orderDate).toLocaleDateString()}
+                                                {orderDate.toLocaleDateString()}
                                             </p>
                                         </div>
                                     </div>
@@ -164,7 +150,7 @@ export default async function OrderDetailPage({ params }: OrderPageProps) {
                                         <div>
                                             <p className="text-xs text-muted-foreground">Est. Delivery</p>
                                             <p className="text-sm font-medium">
-                                                {new Date(order.estimatedDelivery).toLocaleDateString()}
+                                                {estimatedDelivery.toLocaleDateString()}
                                             </p>
                                         </div>
                                     </div>
@@ -179,31 +165,27 @@ export default async function OrderDetailPage({ params }: OrderPageProps) {
                                 <CardDescription>{order.items.length} items</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                {order.items.map((item: any) => (
+                                {order.items.map((item: any, index: number) => (
                                     <div
-                                        key={item.productId}
+                                        key={`${item.productId}-${index}`}
                                         className="flex gap-4 border-b border-border pb-4 last:border-0 last:pb-0"
                                     >
-                                        <div className="relative h-20 w-20 rounded-lg overflow-hidden bg-muted shrink-0">
-                                            <Image
-                                                src={item.image}
-                                                alt={item.name}
-                                                fill
-                                                className="object-cover"
-                                            />
+                                        {/* Placeholder image since API doesn't return image URLs */}
+                                        <div className="relative h-20 w-20 rounded-lg overflow-hidden bg-linear-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 shrink-0 flex items-center justify-center">
+                                            <Package className="h-8 w-8 text-gray-400" />
                                         </div>
                                         <div className="flex-1">
-                                            <p className="font-medium">{item.name}</p>
+                                            <p className="font-medium">{item.productName}</p>
                                             <p className="text-sm text-muted-foreground">
                                                 Quantity: {item.quantity}
                                             </p>
                                             <p className="text-primary font-semibold mt-1">
-                                                ${item.price} each
+                                                ${item.unitPrice.toFixed(2)} each
                                             </p>
                                         </div>
                                         <div className="text-right">
                                             <p className="font-semibold">
-                                                ${(item.price * item.quantity).toFixed(2)}
+                                                ${item.subtotal.toFixed(2)}
                                             </p>
                                         </div>
                                     </div>
@@ -222,51 +204,49 @@ export default async function OrderDetailPage({ params }: OrderPageProps) {
                             <CardContent className="space-y-3">
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">Subtotal</span>
-                                    <span>${order.subtotal.toFixed(2)}</span>
+                                    <span>${order.totalPrice.toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">Shipping</span>
-                                    <span>
-                                        {order.shipping === 0 ? "Free" : `$${order.shipping.toFixed(2)}`}
-                                    </span>
+                                    <span>Calculated at checkout</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">Tax</span>
-                                    <span>${order.tax.toFixed(2)}</span>
+                                    <span>Included</span>
                                 </div>
                                 <div className="border-t border-border pt-3 mt-2">
                                     <div className="flex justify-between font-bold">
                                         <span>Total</span>
                                         <span className="text-primary text-lg">
-                                            ${order.total.toFixed(2)}
+                                            ${order.totalPrice.toFixed(2)}
                                         </span>
                                     </div>
                                 </div>
                             </CardContent>
                         </Card>
 
-                        {/* Shipping Information */}
+                        {/* Customer Information */}
                         <Card>
                             <CardHeader>
-                                <CardTitle>Shipping Information</CardTitle>
+                                <CardTitle>Customer Information</CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-2">
+                            <CardContent className="space-y-3">
                                 <div>
                                     <p className="text-sm text-muted-foreground">Customer Name</p>
                                     <p className="font-medium">{order.customerName}</p>
                                 </div>
-                                <div>
-                                    <p className="text-sm text-muted-foreground">Email</p>
-                                    <p className="font-medium">{order.email}</p>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-muted-foreground">Phone</p>
-                                    <p className="font-medium">{order.phone}</p>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-muted-foreground">Shipping Address</p>
-                                    <p className="font-medium">{order.address}</p>
-                                </div>
+                                {order.createdBy && (
+                                    <>
+                                        <div>
+                                            <p className="text-sm text-muted-foreground">Email</p>
+                                            <p className="font-medium">{order.createdBy.email || 'N/A'}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-muted-foreground">User ID</p>
+                                            <p className="font-medium text-sm">{order.createdBy._id}</p>
+                                        </div>
+                                    </>
+                                )}
                                 {order.notes && (
                                     <div>
                                         <p className="text-sm text-muted-foreground">Order Notes</p>
@@ -276,11 +256,72 @@ export default async function OrderDetailPage({ params }: OrderPageProps) {
                             </CardContent>
                         </Card>
 
-                        {/* Track Order Button */}
-                        <Button className="w-full rounded-full" variant="outline">
-                            <Truck className="h-4 w-4 mr-2" />
-                            Track Order
-                        </Button>
+                        {/* Order Timeline */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Order Timeline</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-3">
+                                <div className="flex gap-3">
+                                    <div className="relative">
+                                        <div className="h-3 w-3 rounded-full bg-green-500 mt-1.5"></div>
+                                        {order.status !== 'delivered' && (
+                                            <div className="absolute top-4 left-1.5 h-full w-0.5 bg-border"></div>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-sm">Order Placed</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {orderDate.toLocaleString()}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {order.status !== 'pending' && order.status !== 'cancelled' && (
+                                    <div className="flex gap-3">
+                                        <div className="h-3 w-3 rounded-full bg-blue-500 mt-1.5"></div>
+                                        <div>
+                                            <p className="font-medium text-sm">Order Confirmed</p>
+                                            <p className="text-xs text-muted-foreground">
+                                                {orderDate.toLocaleString()}
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {order.status === 'delivered' && (
+                                    <div className="flex gap-3">
+                                        <div className="h-3 w-3 rounded-full bg-green-500 mt-1.5"></div>
+                                        <div>
+                                            <p className="font-medium text-sm">Delivered</p>
+                                            <p className="text-xs text-muted-foreground">
+                                                {new Date(order.updatedAt).toLocaleString()}
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {order.status === 'cancelled' && (
+                                    <div className="flex gap-3">
+                                        <div className="h-3 w-3 rounded-full bg-red-500 mt-1.5"></div>
+                                        <div>
+                                            <p className="font-medium text-sm">Order Cancelled</p>
+                                            <p className="text-xs text-muted-foreground">
+                                                {new Date(order.updatedAt).toLocaleString()}
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+
+                        {/* Track Order Button (if shipped) */}
+                        {(order.status === 'shipped' || order.status === 'delivered') && (
+                            <Button className="w-full rounded-full" variant="outline">
+                                <Truck className="h-4 w-4 mr-2" />
+                                Track Order
+                            </Button>
+                        )}
                     </div>
                 </div>
             </div>

@@ -145,6 +145,7 @@ export default function OrderForm() {
     // Handle success/error from state
     useEffect(() => {
         if (state?.success) {
+            console.log(state)
             // Clear cart after successful order
             localStorage.removeItem("cart");
             window.dispatchEvent(new Event("cartUpdated"));
@@ -152,11 +153,11 @@ export default function OrderForm() {
             toast.success(state.message || "Order placed successfully!");
 
             // Redirect to orders page or order confirmation
-            // if (state.orderId) {
-            //     router.push(`/order/${state.orderId}`);
-            // } else {
-            //     router.push("/orders");
-            // }
+            if (state?.data) {
+                router.push(`/order/${state?.data._id}`);
+            } else {
+                router.push("/orders");
+            }
         } else if (state?.message && !state?.success) {
             toast.error(state.message);
         }
