@@ -11,7 +11,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { formatDateTime } from "@/lib/formatters";
 import { IOrders } from "@/types/order.interface";
-import { Calendar, Package, User, Hash, ClipboardList, DollarSign } from "lucide-react";
+import { Calendar, Package, User, Hash, ClipboardList } from "lucide-react";
 
 interface IOrderViewDialogProps {
     open: boolean;
@@ -35,7 +35,7 @@ const OrderViewDetailDialog = ({ open, onClose, order }: IOrderViewDialogProps) 
 
     return (
         <Dialog open={open} onOpenChange={onClose}>
-            <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col p-0">
+            <DialogContent className="max-w-3xl lg:min-w-4xl  max-h-[90vh] flex flex-col p-0">
                 <DialogHeader className="px-6 pt-6 pb-4">
                     <DialogTitle>Order Details</DialogTitle>
                 </DialogHeader>

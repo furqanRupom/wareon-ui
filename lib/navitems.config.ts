@@ -64,17 +64,7 @@ const adminNavItems: NavSection[] = [
             },
         ],
     },
-    {
-        title: "System",
-        items: [
-            {
-                title: "Activity Logs",
-                href: "/admin/dashboard/activity-logs",
-                icon: "Activity",
-                roles: ["admin"],
-            },
-        ],
-    },
+
 ];
 
 // Manager specific nav items
@@ -113,17 +103,7 @@ const managerNavItems: NavSection[] = [
             },
         ],
     },
-    {
-        title: "System",
-        items: [
-            {
-                title: "Activity Logs",
-                href: "/manager/dashboard/activity-logs",
-                icon: "Activity",
-                roles: ["manager"],
-            },
-        ],
-    },
+  
 ];
 
 // User specific nav items
@@ -147,13 +127,7 @@ const userNavItems: NavSection[] = [
                 href: "/user/dashboard/my-orders",
                 icon: "ShoppingBag",
                 roles: ["user"],
-            },
-            {
-                title: "Order History",
-                href: "/user/dashboard/order-history",
-                icon: "History",
-                roles: ["user"],
-            },
+            }
         ],
     },
 ];
@@ -182,11 +156,11 @@ export const getNavItemsByRole = (role: UserRole): NavSection[] => {
 
     switch (role) {
         case "admin":
-            return [commonSection, ...adminNavItems];
+            return [ ...adminNavItems];
         case "manager":
-            return [commonSection, ...managerNavItems];
+            return [ ...managerNavItems];
         case "user":
-            return [commonSection, ...userNavItems];
+            return [ ...userNavItems];
         default:
             return [commonSection];
     }

@@ -22,7 +22,6 @@ const MyOrdersPage = async ({
     const searchParamsObj = await searchParams;
     const queryString = queryStringFormatter(searchParamsObj);
     const orderResult = await getOrdersByUser(queryString);
-
     const totalPages = Math.ceil(
         (orderResult?.meta?.total || 1) / (orderResult?.meta?.limit || 1)
     );

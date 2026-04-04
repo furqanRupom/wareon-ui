@@ -1,7 +1,4 @@
 "use client";
-
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -11,7 +8,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { formatDistanceToNow } from "date-fns";
+import { IActivityLog } from "@/types/activity-log.interface";
 import { Bell, Calendar, CheckCircle, Clock, UserPlus } from "lucide-react";
 
 interface Notification {
@@ -67,77 +64,57 @@ const MOCK_NOTIFICATIONS: Notification[] = [
     },
 ];
 
-const getNotificationIcon = (type: Notification["type"]) => {
+
+const getNotificationIcon = (type: IActivityLog["action"]) => {
     switch (type) {
-        case "appointment":
+        case "ORDER_CREATED":
             return <Calendar className="h-4 w-4 text-blue-600" />;
-        case "schedule":
+        case "ORDER_CONFIRMED":
             return <Clock className="h-4 w-4 text-amber-600" />;
-        case "user":
+        case "ORDER_SHIPPED":
             return <UserPlus className="h-4 w-4 text-green-600" />;
-        case "system":
+        case "ORDER_DELIVERED":
             return <CheckCircle className="h-4 w-4 text-purple-600" />;
+        case "ORDER_CANCELLED":
+            return <CheckCircle className="h-4 w-4 text-rose-600" />;
         default:
             return <Bell className="h-4 w-4" />;
     }
 };
 
-export default function NotificationDropdown() {
-    const unreadCount = MOCK_NOTIFICATIONS.filter((n) => !n.read).length;
+export default function NotificationDropdown({activityLogs}:{activityLogs?:any[]}) {
+    console.log(activityLogs?.length) // 2
+
 
     return (
         <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className="relative">
-                    <Bell className="h-5 w-5" />
-                    {unreadCount > 0 && (
-                        <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-[10px] font-bold text-white flex items-center justify-center">
-                            {unreadCount > 9 ? "9+" : unreadCount}
-                        </span>
-                    )}
-                </Button>
-            </DropdownMenuTrigger>
+          
             <DropdownMenuContent align="end" className="w-80">
-                <DropdownMenuLabel className="flex items-center justify-between">
-                    <span>Notifications</span>
-                    {unreadCount > 0 && (
-                        <Badge variant="destructive" className="ml-2">
-                            {unreadCount} new
-                        </Badge>
-                    )}
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
+               
                 <ScrollArea className="h-100">
-                    {MOCK_NOTIFICATIONS.length === 0 ? (
+                    {!activityLogs || activityLogs.length === 0 ? (
                         <div className="p-4 text-center text-sm text-muted-foreground">
-                            No notifications yet
+                            No logs yet
                         </div>
                     ) : (
-                        MOCK_NOTIFICATIONS.map((notification) => (
+                        activityLogs?.map((notification) => (
                             <DropdownMenuItem
-                                key={notification.id}
-                                className={`flex items-start gap-3 p-3 cursor-pointer ${!notification.read ? "bg-primary/5" : ""
+                                key={notification._id}
+                                className={`flex items-start gap-3 p-3 cursor-pointer" : ""
                                     }`}
                             >
                                 <div className="mt-0.5">
-                                    {getNotificationIcon(notification.type)}
+                                    {getNotificationIcon(notification.action)}
                                 </div>
                                 <div className="flex-1 space-y-1">
                                     <div className="flex items-start justify-between gap-2">
                                         <p className="text-sm font-medium leading-none">
-                                            {notification.title}
+                                            {notification.summary}
                                         </p>
-                                        {!notification.read && (
-                                            <div className="h-2 w-2 rounded-full bg-blue-600 shrink-0 mt-1" />
-                                        )}
+                                     
                                     </div>
-                                    <p className="text-xs text-muted-foreground line-clamp-2">
-                                        {notification.message}
-                                    </p>
                                     <p className="text-xs text-muted-foreground">
-                                        {formatDistanceToNow(notification.timestamp, {
-                                            addSuffix: true,
-                                        })}
+                                       {notification.createdAt}
                                     </p>
                                 </div>
                             </DropdownMenuItem>
@@ -146,7 +123,7 @@ export default function NotificationDropdown() {
                 </ScrollArea>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="text-center justify-center text-sm font-medium text-primary cursor-pointer">
-                    View all notifications
+                    View all logs
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>

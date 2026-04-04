@@ -78,7 +78,7 @@ const OrderTable = ({ orders }: OrderTableProps) => {
                 data={orders}
                 columns={orderColumns}
                 onView={handleView}
-                onEdit={handleEdit}
+                // onEdit={handleEdit}
                 onDelete={handleDelete}
                 customActions={customActions}
                 getRowKey={(order) => order._id!}

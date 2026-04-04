@@ -40,12 +40,6 @@ const MyOrderTable = ({ orders }: MyOrderTableProps) => {
     // Custom actions for user orders
     const customActions = [
         {
-            label: "Update Items",
-            onClick: handleUpdate,
-            variant: "outline" as const,
-            showCondition: (order: IOrders) => order.status === "pending",
-        },
-        {
             label: "Cancel Order",
             onClick: handleCancel,
             variant: "destructive" as const,
@@ -64,19 +58,7 @@ const MyOrderTable = ({ orders }: MyOrderTableProps) => {
                 emptyMessage="No orders found"
             />
 
-            {/* Update Order Items Dialog */}
-            <MyOrderManagementDialog
-                open={!!updatingOrder}
-                onClose={() => setUpdatingOrder(null)}
-                order={updatingOrder!}
-                type="update"
-                onSuccess={() => {
-                    setUpdatingOrder(null);
-                    handleRefresh();
-                }}
-            />
-
-            {/* Cancel Order Dialog */}
+         
             <MyOrderManagementDialog
                 open={!!cancellingOrder}
                 onClose={() => setCancellingOrder(null)}

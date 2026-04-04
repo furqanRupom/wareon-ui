@@ -2,6 +2,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { IProduct } from "@/types/product.interface";
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -20,18 +21,8 @@ interface NewArrivalsProps {
     products: Product[];
 }
 
-const sampleProducts: Product[] = [
-    {
-        _id: "1",
-        name: "Chic Transparent Fashion Handbag",
-        price: 61,
-        productUrl: ["https://i.imgur.com/Lqaqz59.jpg"],
-        category: { name: "Miscellaneous" }
-    },
-    // Add more products...
-];
 
-export default function NewArrivals() {
+export default function NewArrivals({ products }: NewArrivalsProps) {
     return (
         <section className="w-full py-12 md:py-16 bg-background">
             <div className="container mx-auto px-4">
@@ -39,7 +30,7 @@ export default function NewArrivals() {
                     <h2 className="text-3xl md:text-4xl font-bold text-foreground text-center md:text-left">
                         NEW ARRIVALS
                     </h2>
-                    <Link href="/products">
+                    <Link href="/shop">
                         <Button
                             variant="outline"
                             className="mt-4 md:mt-0 rounded-full border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300"
@@ -51,10 +42,10 @@ export default function NewArrivals() {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {sampleProducts.slice(0, 4).map((product) => (
+                    {products.slice(0, 4).map((product) => (
                         <Link
                             key={product._id}
-                            href={`/product/${product._id}`}
+                            href={`/shop/${product._id}`}
                             className="group"
                         >
                             <div className="bg-card rounded-2xl overflow-hidden border border-border/50 hover:shadow-lg transition-all duration-300">

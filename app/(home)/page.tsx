@@ -3,6 +3,7 @@ import CustomerReviews from "@/components/home/customer-reviews";
 import HeroSection from "@/components/home/Hero"
 import NewArrivals from "@/components/home/new-arrivals";
 import TopSelling from "@/components/home/top-seling";
+import { getProducts } from "@/services/product/productManagent";
 import { Metadata } from "next"
 
 export const metadata:Metadata = {
@@ -15,12 +16,12 @@ export const metadata:Metadata = {
 
 
 
-export default function Page() {
+export default async function Page() {
+  const products = await getProducts("")
   return (
     <div >
       <HeroSection />
-      <NewArrivals  />
-      <TopSelling/>
+      <NewArrivals products={products?.data || []}  />
       <BrowseByCategory />
       <CustomerReviews />
     </div>

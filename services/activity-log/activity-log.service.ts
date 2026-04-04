@@ -9,7 +9,7 @@ import { serverFetch } from "@/lib/server-fetch"
  */
 export async function getActivityLogs(queryString?: string) {
     try {
-        const response = await serverFetch.get(`/activity-logs${queryString ? `?${queryString}` : ""}`,{
+        const response = await serverFetch.get(`/activity-logs${queryString ? `?${queryString}` : ""}`, {
             next: {
                 tags: [
                     'activity-logs'
@@ -17,7 +17,15 @@ export async function getActivityLogs(queryString?: string) {
                 revalidate: 180
             }
         })
-    } catch (error) {
-
+        const result = await response.json()
+        return result;
+    } catch (error: any) {
+        if (error?.digest?.startsWith('NEXT_REDIRECT')) {
+            throw error;
+        }
+        return {
+            success: false,
+            message: `${process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'}`
+        };
     }
 }

@@ -217,7 +217,7 @@ export async function updateOrderStatus(orderId: string, _prevState: any, formDa
         };
     }
     try {
-        const response = await serverFetch.patch(`/${orderId}/status`, {
+        const response = await serverFetch.patch(`/order/${orderId}/status`, {
             body: JSON.stringify(validatedPayload.data),
             headers: { "Content-Type": "application/json" },
         })
@@ -238,6 +238,9 @@ export async function updateOrderStatus(orderId: string, _prevState: any, formDa
         }
         return result;
     } catch (error: any) {
+        if (error?.digest?.startsWith('NEXT_REDIRECT')) {
+            throw error;
+        }
         return {
             success: false,
             message: `${process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'}`
@@ -253,7 +256,7 @@ export async function updateOrder(orderId: string, _prevState: any, formData: Fo
         items = rawItems ? JSON.parse(rawItems as string) : [];
         const validationPayload = { items }
         const validatedPayload = zodValidator(validationPayload, orderItemUpdateSchema)
-        const response = await serverFetch.patch(`/${orderId}/items`, {
+        const response = await serverFetch.patch(`/order/${orderId}/items`, {
             body: JSON.stringify(validatedPayload.data),
             headers: { "Content-Type": "application/json" },
         });
@@ -275,7 +278,10 @@ export async function updateOrder(orderId: string, _prevState: any, formData: Fo
             revalidateTag('activity-logs', { expire: 0 });
         }
         return result;
-    } catch {
+    } catch (error:any){
+        if (error?.digest?.startsWith('NEXT_REDIRECT')) {
+            throw error;
+        }
         return {
             success: false,
             message: "Invalid items format",
@@ -286,12 +292,8 @@ export async function updateOrder(orderId: string, _prevState: any, formData: Fo
 
 export async function cancelOrder(orderId: string) {
     try {
-        const response = await serverFetch.patch(`/${orderId}/cancel`)
+        const response = await serverFetch.patch(`/order/${orderId}/cancel`)
         const result = await response.json();
-        if (result.success) {
-            revalidateTag('order-list', { expire: 0 });
-            revalidateTag('user-order-list', { expire: 0 });
-        }
         if (result.success) {
             revalidateTag('product-list', { expire: 0 });
             revalidateTag('order-list', { expire: 0 });
@@ -301,6 +303,9 @@ export async function cancelOrder(orderId: string) {
         }
         return result;
     } catch (error: any) {
+        if (error?.digest?.startsWith('NEXT_REDIRECT')) {
+            throw error;
+        }
         return {
             success: false,
             message: `${process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'}`

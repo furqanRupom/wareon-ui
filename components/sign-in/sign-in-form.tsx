@@ -127,15 +127,6 @@ export default function SignInForm({redirect}: {redirect?: string}) {
                 >
                     Sign in as Manager (manager@wareon.com)
                 </Button>
-                <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => handleAutoLogin("admin@wareon.com", "Admin12345@")}
-                    className="w-full rounded-full cursor-pointer"
-                    disabled={isPending}
-                >
-                    Sign in as Admin (admin@wareon.com)
-                </Button>
             </div>
 
             <p className="text-center text-sm text-muted-foreground py-3 mt-4">

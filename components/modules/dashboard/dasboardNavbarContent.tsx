@@ -16,11 +16,13 @@ interface DashboardNavbarContentProps {
     userInfo: UserInfo;
     navItems?: NavSection[];
     dashboardHome?: string;
+    activityLogs?:any
 }
 const DashboardNavbarContent = ({
     userInfo,
     navItems,
     dashboardHome,
+    activityLogs
 }: DashboardNavbarContentProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
@@ -95,8 +97,8 @@ const DashboardNavbarContent = ({
                 {/* Right Side Actions */}
                 <div className="flex items-center gap-2">
                     {/* Notifications */}
-                    <NotificationDropdown />
-
+                 <NotificationDropdown activityLogs={activityLogs} />
+                        
                     {/* User Dropdown */}
                     <UserDropdown userInfo={userInfo} />
                 </div>
