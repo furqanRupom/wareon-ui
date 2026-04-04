@@ -79,7 +79,7 @@ const OrderTable = ({ orders }: OrderTableProps) => {
                 columns={orderColumns}
                 onView={handleView}
                 // onEdit={handleEdit}
-                onDelete={handleDelete}
+                // onDelete={handleDelete}  
                 customActions={customActions}
                 getRowKey={(order) => order._id!}
                 emptyMessage="No orders found"
