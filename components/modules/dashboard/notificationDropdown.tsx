@@ -9,120 +9,116 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { IActivityLog } from "@/types/activity-log.interface";
-import { Bell, Calendar, CheckCircle, Clock, UserPlus } from "lucide-react";
+import { Bell, Calendar, CheckCircle, Clock, Package, Truck, XCircle, Eye } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { formatDistanceToNow } from "date-fns";
 
-interface Notification {
-    id: string;
-    type: "appointment" | "schedule" | "system" | "user";
-    title: string;
-    message: string;
-    timestamp: Date;
-    read: boolean;
-}
-
-// Hardcoded notifications for now
-const MOCK_NOTIFICATIONS: Notification[] = [
-    {
-        id: "1",
-        type: "appointment",
-        title: "New Appointment Booked",
-        message: "John Doe has booked an appointment for tomorrow at 10:00 AM",
-        timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-        read: false,
-    },
-    {
-        id: "2",
-        type: "appointment",
-        title: "Appointment Reminder",
-        message: "You have an appointment with Dr. Sarah Johnson in 1 hour",
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-        read: false,
-    },
-    {
-        id: "3",
-        type: "schedule",
-        title: "Schedule Updated",
-        message: "Your schedule for next week has been updated",
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5), // 5 hours ago
-        read: true,
-    },
-    {
-        id: "4",
-        type: "user",
-        title: "New Patient Registration",
-        message: "Emily Wilson has registered and is now in your patient list",
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-        read: true,
-    },
-    {
-        id: "5",
-        type: "system",
-        title: "System Maintenance",
-        message: "Scheduled maintenance on Sunday 2:00 AM - 4:00 AM",
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2), // 2 days ago
-        read: true,
-    },
-];
-
-
-const getNotificationIcon = (type: IActivityLog["action"]) => {
-    switch (type) {
+const getNotificationIcon = (action: string) => {
+    switch (action) {
         case "ORDER_CREATED":
-            return <Calendar className="h-4 w-4 text-blue-600" />;
+            return <Package className="h-4 w-4 text-blue-600" />;
         case "ORDER_CONFIRMED":
-            return <Clock className="h-4 w-4 text-amber-600" />;
+            return <CheckCircle className="h-4 w-4 text-green-600" />;
         case "ORDER_SHIPPED":
-            return <UserPlus className="h-4 w-4 text-green-600" />;
+            return <Truck className="h-4 w-4 text-purple-600" />;
         case "ORDER_DELIVERED":
-            return <CheckCircle className="h-4 w-4 text-purple-600" />;
+            return <CheckCircle className="h-4 w-4 text-teal-600" />;
         case "ORDER_CANCELLED":
-            return <CheckCircle className="h-4 w-4 text-rose-600" />;
+            return <XCircle className="h-4 w-4 text-red-600" />;
+        case "ORDER_ITEMS_UPDATED":
+            return <Package className="h-4 w-4 text-amber-600" />;
         default:
-            return <Bell className="h-4 w-4" />;
+            return <Bell className="h-4 w-4 text-muted-foreground" />;
     }
 };
 
-export default function NotificationDropdown({activityLogs}:{activityLogs?:any[]}) {
-    console.log(activityLogs?.length) // 2
+const getNotificationTitle = (action: string) => {
+    switch (action) {
+        case "ORDER_CREATED":
+            return "Order Created";
+        case "ORDER_CONFIRMED":
+            return "Order Confirmed";
+        case "ORDER_SHIPPED":
+            return "Order Shipped";
+        case "ORDER_DELIVERED":
+            return "Order Delivered";
+        case "ORDER_CANCELLED":
+            return "Order Cancelled";
+        case "ORDER_ITEMS_UPDATED":
+            return "Order Updated";
+        default:
+            return "Activity Log";
+    }
+};
 
+export default function NotificationDropdown({ activityLogs }: { activityLogs?: any[] }) {
+    console.log(activityLogs)
+    const unreadCount = activityLogs?.filter(log => !log.read)?.length || 0;
 
     return (
         <DropdownMenu>
-          
-            <DropdownMenuContent align="end" className="w-80">
-               
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative">
+                    <Bell className="h-5 w-5" />
+                    {unreadCount > 0 && (
+                        <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-[10px] font-medium text-white flex items-center justify-center">
+                            {unreadCount > 9 ? "9+" : unreadCount}
+                        </span>
+                    )}
+                </Button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent align="end" className="w-80 p-0">
+                <DropdownMenuLabel className="px-3 py-2 border-b">
+                    <div className="flex items-center justify-between">
+                        <span className="font-semibold">Notifications</span>
+                        {unreadCount > 0 && (
+                            <span className="text-xs text-muted-foreground">
+                                {unreadCount} unread
+                            </span>
+                        )}
+                    </div>
+                </DropdownMenuLabel>
+
                 <ScrollArea className="h-100">
                     {!activityLogs || activityLogs.length === 0 ? (
-                        <div className="p-4 text-center text-sm text-muted-foreground">
-                            No logs yet
+                        <div className="p-8 text-center text-sm text-muted-foreground">
+                            <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                            No notifications yet
                         </div>
                     ) : (
-                        activityLogs?.map((notification) => (
+                        activityLogs.map((log) => (
                             <DropdownMenuItem
-                                key={notification._id}
-                                className={`flex items-start gap-3 p-3 cursor-pointer" : ""
-                                    }`}
+                                key={log._id}
+                                className="flex items-start gap-3 p-3 cursor-pointer hover:bg-muted/50 transition-colors"
                             >
                                 <div className="mt-0.5">
-                                    {getNotificationIcon(notification.action)}
+                                    {getNotificationIcon(log.action)}
                                 </div>
                                 <div className="flex-1 space-y-1">
                                     <div className="flex items-start justify-between gap-2">
                                         <p className="text-sm font-medium leading-none">
-                                            {notification.summary}
+                                            {getNotificationTitle(log.action)}
                                         </p>
-                                     
+                                        {!log.read && (
+                                            <span className="h-2 w-2 rounded-full bg-blue-500" />
+                                        )}
                                     </div>
-                                    <p className="text-xs text-muted-foreground">
-                                       {notification.createdAt}
+                                    <p className="text-xs text-muted-foreground line-clamp-2">
+                                        {log.summary}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground/70">
+                                        {formatDistanceToNow(new Date(log.createdAt), { addSuffix: true })}
                                     </p>
                                 </div>
                             </DropdownMenuItem>
                         ))
                     )}
                 </ScrollArea>
+
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-center justify-center text-sm font-medium text-primary cursor-pointer">
+                <DropdownMenuItem className="text-center justify-center text-sm font-medium text-primary cursor-pointer py-2">
+                    <Eye className="h-3 w-3 mr-1" />
                     View all logs
                 </DropdownMenuItem>
             </DropdownMenuContent>
