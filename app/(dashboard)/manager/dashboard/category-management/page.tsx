@@ -1,13 +1,10 @@
 
 import CategoryManagementHeader from "@/components/modules/category/categoryManagementHeader";
 import CategoryTable from "@/components/modules/category/categoryTables";
-import ProductManagementHeader from "@/components/modules/product/productManagementHeader";
-import ProductsTable from "@/components/modules/product/productsTable";
 import TablePagination from "@/components/shared/tablePagination";
 import { TableSkeleton } from "@/components/shared/tableSkeleton";
 import { queryStringFormatter } from "@/lib/formatters";
 import { getCategories } from "@/services/category/categoryManagement";
-import { getProducts } from "@/services/product/productManagent";
 import { Metadata } from "next";
 import { Suspense } from "react";
 

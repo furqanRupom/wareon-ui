@@ -24,3 +24,26 @@ export const createOrderSchema = z.object({
         .max(500, "Notes must be at most 500 characters")
         .optional(),
 });
+
+export enum OrderStatus {
+    PENDING = 'pending',
+    CONFIRMED = 'confirmed',
+    SHIPPED = 'shipped',
+    DELIVERED = 'delivered',
+    CANCELLED = 'cancelled',
+}
+
+
+export const updateStatusSchema = z.object({
+    status: z.enum(OrderStatus)
+})
+
+export const orderItemUpdateSchema = z.object({
+    productId: z
+        .string()
+        .regex(/^[0-9a-fA-F]{24}$/, "Invalid MongoDB ObjectId").optional(),
+
+    quantity: z
+        .number()
+        .positive("Quantity must be greater than 0").optional(),
+});

@@ -34,18 +34,25 @@ export interface Column<T> {
     sortKey?: string;
 }
 
+export interface CustomAction<T> {
+    label: string;
+    onClick: (row: T) => void;
+    variant?: "default" | "destructive" | "outline";
+    icon?: React.ReactNode;
+    showCondition?: (row: T) => boolean;
+}
+
 interface ManagementTableProps<T> {
     data: T[];
     columns: Column<T>[];
     onView?: (row: T) => void;
     onEdit?: (row: T) => void;
     onDelete?: (row: T) => void;
+    customActions?: CustomAction<T>[];
     getRowKey: (row: T) => string;
     emptyMessage?: string;
     isRefreshing?: boolean;
 }
-
-
 
 function ManagementTable<T>({
     data = [],
@@ -53,11 +60,12 @@ function ManagementTable<T>({
     onView,
     onEdit,
     onDelete,
+    customActions = [],
     getRowKey,
     emptyMessage = "No records found.",
     isRefreshing = false,
 }: ManagementTableProps<T>) {
-    const hasActions = onView || onEdit || onDelete;
+    const hasActions = !!(onView || onEdit || onDelete || customActions.length > 0);
     const router = useRouter();
     const searchParams = useSearchParams();
     const [, startTransition] = useTransition();
@@ -76,7 +84,7 @@ function ManagementTable<T>({
             params.set("sortOrder", "desc");
         }
 
-        params.set("page", "1"); 
+        params.set("page", "1");
 
         startTransition(() => {
             router.push(`?${params.toString()}`);
@@ -96,6 +104,18 @@ function ManagementTable<T>({
             <ArrowDown className="ml-2 h-4 w-4" />
         );
     };
+
+    const getActionButtonVariant = (variant?: string) => {
+        switch (variant) {
+            case "destructive":
+                return "text-destructive";
+            case "outline":
+                return "";
+            default:
+                return "";
+        }
+    };
+
     return (
         <>
             <div className="rounded-lg border relative">
@@ -144,51 +164,75 @@ function ManagementTable<T>({
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            data?.map((item) => (
-                                <TableRow key={getRowKey(item)}>
-                                    {columns.map((col, idx) => (
-                                        <TableCell key={idx} className={col.className}>
-                                            {typeof col.accessor === "function"
-                                                ? col.accessor(item)
-                                                : String(item[col.accessor])}
-                                        </TableCell>
-                                    ))}
-                                    {hasActions && (
-                                        <TableCell>
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon">
-                                                        <MoreHorizontal className="h-4 w-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    {onView && (
-                                                        <DropdownMenuItem onClick={() => onView(item)}>
-                                                            <Eye className="mr-2 h-4 w-4" />
-                                                            View
-                                                        </DropdownMenuItem>
-                                                    )}
-                                                    {onEdit && (
-                                                        <DropdownMenuItem onClick={() => onEdit(item)}>
-                                                            <Edit className="mr-2 h-4 w-4" />
-                                                            Edit
-                                                        </DropdownMenuItem>
-                                                    )}
-                                                    {onDelete && (
-                                                        <DropdownMenuItem
-                                                            onClick={() => onDelete(item)}
-                                                            className="text-destructive"
-                                                        >
-                                                            <Trash className="mr-2 h-4 w-4" />
-                                                            Delete
-                                                        </DropdownMenuItem>
-                                                    )}
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </TableCell>
-                                    )}
-                                </TableRow>
-                            ))
+                            data?.map((item) => {
+                                // Filter custom actions based on showCondition
+                                const visibleCustomActions = customActions.filter(
+                                    (action) => !action.showCondition || action.showCondition(item)
+                                );
+
+                                const hasCustomActions = visibleCustomActions.length > 0;
+                                const hasStandardActions = !!(onView || onEdit || onDelete);
+                                const showActions = hasStandardActions || hasCustomActions;
+
+                                return (
+                                    <TableRow key={getRowKey(item)}>
+                                        {columns.map((col, idx) => (
+                                            <TableCell key={idx} className={col.className}>
+                                                {typeof col.accessor === "function"
+                                                    ? col.accessor(item)
+                                                    : String(item[col.accessor])}
+                                            </TableCell>
+                                        ))}
+                                        {showActions && (
+                                            <TableCell>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" size="icon">
+                                                            <MoreHorizontal className="h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        {/* Standard Actions */}
+                                                        {onView && (
+                                                            <DropdownMenuItem onClick={() => onView(item)}>
+                                                                <Eye className="mr-2 h-4 w-4" />
+                                                                View
+                                                            </DropdownMenuItem>
+                                                        )}
+                                                        {onEdit && (
+                                                            <DropdownMenuItem onClick={() => onEdit(item)}>
+                                                                <Edit className="mr-2 h-4 w-4" />
+                                                                Edit
+                                                            </DropdownMenuItem>
+                                                        )}
+                                                        {onDelete && (
+                                                            <DropdownMenuItem
+                                                                onClick={() => onDelete(item)}
+                                                                className="text-destructive"
+                                                            >
+                                                                <Trash className="mr-2 h-4 w-4" />
+                                                                Delete
+                                                            </DropdownMenuItem>
+                                                        )}
+
+                                                        {/* Custom Actions */}
+                                                        {visibleCustomActions.map((action, idx) => (
+                                                            <DropdownMenuItem
+                                                                key={idx}
+                                                                onClick={() => action.onClick(item)}
+                                                                className={getActionButtonVariant(action.variant)}
+                                                            >
+                                                                {action.icon && <span className="mr-2">{action.icon}</span>}
+                                                                {action.label}
+                                                            </DropdownMenuItem>
+                                                        ))}
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </TableCell>
+                                        )}
+                                    </TableRow>
+                                );
+                            })
                         )}
                     </TableBody>
                 </Table>

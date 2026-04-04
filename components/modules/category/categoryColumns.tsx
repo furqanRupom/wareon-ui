@@ -2,7 +2,6 @@
 
 import { DateCell } from "@/components/shared/cell/dateCell";
 import { StatusBadgeBoolCell } from "@/components/shared/cell/statusBadgeBoolCell";
-import { StatusBadgeCell } from "@/components/shared/cell/statusBadgeCell";
 import { Column } from "@/components/shared/managementTable";
 import { ICategory } from "@/types/product.interface";
 
