@@ -42,8 +42,8 @@ export function ThemeToggle() {
         "transition-transform duration-350",
         isDark ? "translate-x-12" : "translate-x-0"
       )}>
-        <Sun className={cn("w-3.5 h-3.5 absolute text-amber-600 transition-all duration-200", isDark ? "opacity-0 scale-50 rotate-45" : "opacity-100 scale-100 rotate-0")} />
-        <Moon className={cn("w-3.5 h-3.5 absolute text-violet-700 transition-all duration-200", isDark ? "opacity-100 scale-100 rotate-0" : "opacity-0 scale-50 -rotate-30")} />
+        <Sun className={cn("w-3.5 h-3.5 absolute text-primary transition-all duration-200", isDark ? "opacity-0 scale-50 rotate-45" : "opacity-100 scale-100 rotate-0")} />
+        <Moon className={cn("w-3.5 h-3.5 absolute text-primary transition-all duration-200", isDark ? "opacity-100 scale-100 rotate-0" : "opacity-0 scale-50 -rotate-30")} />
       </div>
     </button>
   );
