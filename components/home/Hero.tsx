@@ -1,99 +1,159 @@
-"use client";
-import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ArrowRight } from "lucide-react";
 
-export default function HeroSection() {
-    const stats = [
-        { value: "200+", label: "International Brands" },
-        { value: "2,000+", label: "High-Quality Products" },
-        { value: "30,000+", label: "Happy Customers" },
-    ];
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import Link from "next/link";
 
-    return (
-        <section className="relative w-full overflow-hidden bg-background ">
-            <div className="container relative mx-auto px-4 py-12 md:py-20 lg:py-24">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                    {/* Left Column - Text Content */}
-                    <div className="space-y-8 text-center lg:text-left">
-                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground">
-                            FIND CLOTHES THAT
-                            <br />
-                            MATCHES YOUR STYLE
+const heroSlides = [
+  {
+    title: "iPhone 16 Pro Max",
+    desc: "Featuring A18 Chip, Liquid Glass, and AI-Powered Innovation",
+    tag: "LIMITED EDITION",
+    image:
+      "https://images.pexels.com/photos/788946/pexels-photo-788946.jpeg",
+  },
+  {
+    title: "Next Gen Performance",
+    desc: "Powerful speed with seamless AI integration",
+    tag: "NEW ARRIVAL",
+    image:
+      "https://images.pexels.com/photos/404280/pexels-photo-404280.jpeg",
+  },
+  {
+    title: "Ultra Experience",
+    desc: "Redefined mobile experience with pro-level features",
+    tag: "TRENDING",
+    image:
+      "https://images.pexels.com/photos/13780425/pexels-photo-13780425.jpeg",
+  },
+];
+
+const HeroSection = () => {
+  return (
+    <section className="container mx-auto mt-10 mb-12">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        {/* LEFT BIG HERO CAROUSEL */}
+        <div className="lg:col-span-2 rounded-3xl overflow-hidden min-h-130 relative">
+
+          <Carousel className="w-full h-full">
+            <CarouselContent>
+              {heroSlides.map((slide, index) => (
+                <CarouselItem key={index} className="relative">
+                  <div className="relative min-h-130 w-full">
+
+                    <Image
+                      src={slide.image}
+                      alt={slide.title}
+                      fill
+                      priority
+                      className="object-cover"
+                    />
+
+                    {/* overlay */}
+                    <div className="absolute inset-0 bg-linear-to-r from-black/80 via-black/50 to-transparent" />
+
+                    {/* content */}
+                    <div className="absolute inset-0 flex items-center p-8 md:p-12 text-white z-10">
+                      <div className="max-w-xl space-y-6">
+
+                        <Badge className="bg-primary/10 border border-primary/20 text-primary backdrop-blur-md">
+                          {slide.tag}
+                        </Badge>
+
+                        <h1 className="text-3xl md:text-5xl font-extrabold leading-tight">
+                          {slide.title}
                         </h1>
 
-                        <p className="text-base md:text-lg text-muted-foreground max-w-lg mx-auto lg:mx-0">
-                            Browse through our diverse range of meticulously crafted garments,
-                            designed to bring out your individuality and cater to your sense of style.
-                        </p>
+                        <p className="text-white/80">{slide.desc}</p>
 
-                        <div className="flex justify-center lg:justify-start">
-                            <Button
-                                size="lg"
-                                className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 py-6 text-base font-medium shadow-lg transition-all duration-300 hover:shadow-xl group"
-                            >
-                                Shop Now
-                                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                            </Button>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-8 border-t border-border/50 mt-8">
-                            {stats.map((stat, index) => (
-                                <div key={index} className="text-center sm:text-left space-y-1">
-                                    <p className="text-2xl md:text-3xl font-bold text-foreground">
-                                        {stat.value}
-                                    </p>
-                                    <p className="text-sm text-muted-foreground">
-                                        {stat.label}
-                                    </p>
-                                </div>
-                            ))}
-                        </div>
+                        <Link href="/shop" >
+                        <Button className="rounded-xl cursor-pointer px-6">
+                          Shop Now <ArrowRight className="ml-2 h-4 w-4" />
+                        </Button>
+                        </Link>
+                      </div>
                     </div>
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
 
-                    {/* Right Column - Images */}
-                    <div className="relative">
-                        <div className="grid grid-cols-2 gap-4">
-                            {/* Image 1 - Shirt */}
-                            <div className="relative aspect-3/4 rounded-2xl overflow-hidden shadow-lg">
-                                <Image
-                                    src="https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=600&h=800&fit=crop"
-                                    alt="Stylish shirt"
-                                    fill
-                                    className="object-cover hover:scale-105 transition-transform duration-500"
-                                    sizes="(max-width: 768px) 50vw, 33vw"
-                                />
-                            </div>
+            <CarouselPrevious />
+            <CarouselNext />
+          </Carousel>
+        </div>
 
-                            {/* Image 2 - T-Shirt */}
-                            <div className="relative aspect-3/4 rounded-2xl overflow-hidden shadow-lg mt-8">
-                                <Image
-                                    src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600&h=800&fit=crop"
-                                    alt="Casual t-shirt"
-                                    fill
-                                    className="object-cover hover:scale-105 transition-transform duration-500"
-                                    sizes="(max-width: 768px) 50vw, 33vw"
-                                />
-                            </div>
+        {/* RIGHT SIDE STACK */}
+        <div className="flex flex-col gap-6">
 
-                            {/* Image 3 - Jacket (spans both columns) */}
-                            <div className="col-span-2 relative aspect-video rounded-2xl overflow-hidden shadow-lg">
-                                <Image
-                                    src="https://cdn.pixabay.com/photo/2021/03/08/12/06/oxford-shoes-6078951_1280.jpg"
-                                    alt="Stylish jacket"
-                                    fill
-                                    className="object-cover hover:scale-105 transition-transform duration-500"
-                                    sizes="100vw"
-                                />
-                            </div>
-                        </div>
+          {/* TOP CARD */}
+          <div className="rounded-3xl overflow-hidden min-h-[250px] flex bg-secondary">
 
-                        {/* Decorative Elements */}
-                        <div className="absolute -bottom-4 -right-4 w-40 h-40 bg-primary/10 rounded-full blur-3xl -z-10" />
-                        <div className="absolute -top-4 -left-4 w-40 h-40 bg-primary/10 rounded-full blur-3xl -z-10" />
-                    </div>
-                </div>
+            {/* TEXT SIDE */}
+            <div className="w-[40%] p-6 flex flex-col justify-center space-y-3">
+              <h2 className="text-xl font-bold text-foreground">
+                Smart Security Home Camera
+              </h2>
+
+              <p className="text-sm text-muted-foreground">
+                Save up to{" "}
+                <span className="text-primary font-semibold">$450</span>
+              </p>
             </div>
-        </section>
-    );
-}
+
+            {/* IMAGE SIDE */}
+            <div className="w-[60%] relative">
+              <Image
+                src="https://images.pexels.com/photos/27505236/pexels-photo-27505236.jpeg"
+                alt="Camera"
+                fill
+                className="object-cover"
+              />
+            </div>
+
+          </div>
+
+          {/* BOTTOM CARD */}
+          <div className="rounded-3xl overflow-hidden min-h-[250px] flex bg-muted">
+
+            {/* TEXT SIDE */}
+            <div className="w-[40%] p-6 flex flex-col justify-center space-y-3">
+              <h2 className="text-xl font-bold text-foreground">
+                Galaxy S24 Ultra 5G
+              </h2>
+
+              <p className="text-sm text-muted-foreground">
+                Save up to{" "}
+                <span className="text-primary font-semibold">$600</span>
+              </p>
+            </div>
+
+            {/* IMAGE SIDE */}
+            <div className="w-[60%] relative">
+              <Image
+                src="https://images.pexels.com/photos/13780425/pexels-photo-13780425.jpeg"
+                alt="Galaxy S24"
+                fill
+                className="object-cover"
+              />
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default HeroSection;
