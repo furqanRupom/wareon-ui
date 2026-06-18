@@ -1,8 +1,8 @@
 import {Poppins } from "next/font/google"
 
 import "./globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
+import ThemeProvider from "@/components/theme-provider"
 
 
 const poppins = Poppins({subsets:['latin'],weight:['400','500','600','700'],variable:'--font-poppins'})

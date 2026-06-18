@@ -7,6 +7,7 @@ import { Search } from "lucide-react";
 import { Input } from "../ui/input";
 import NavbarAuthButtons from "./navbarAuthButtons";
 import NavbarCartButton from "./navbarCartButtons";
+import { ThemeToggle } from "../ui/theme-toggle";
 
 const PublicNavbar = async () => {
     const navItems = [
@@ -64,6 +65,8 @@ const PublicNavbar = async () => {
                     </div>
 
                     <div className="hidden lg:flex items-center gap-2">
+
+                <ThemeToggle />
                         <NavbarCartButton />
                         <NavbarAuthButtons
                             initialHasToken={!!accessToken}

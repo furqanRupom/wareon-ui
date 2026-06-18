@@ -9,6 +9,7 @@ import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "../ui/sheet";
 import { Input } from "../ui/input";
 import { Badge } from "../ui/badge";
 import UserDropdown from "../modules/dashboard/userDropdown";
+import { ThemeToggle } from "../ui/theme-toggle";
 
 interface MobileMenuProps {
     navItems: Array<{ href: string; label: string }>;
@@ -100,7 +101,8 @@ const MobileMenu = ({
                         </nav>
 
                         {/* Mobile footer actions */}
-                        <div className="px-4 py-4 border-t flex gap-3">
+                        <div className="px-4 py-4 border-t flex gap-3 items-center">
+                            <ThemeToggle />
                             <Button
                                 variant="outline"
                                 className="flex-1 gap-2 hover:text-primary hover:border-primary relative"
