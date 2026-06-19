@@ -3,286 +3,349 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Heart, Minus, Plus, Check } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
-    Breadcrumb,
-    BreadcrumbItem,
-    BreadcrumbLink,
-    BreadcrumbList,
-    BreadcrumbPage,
-    BreadcrumbSeparator,
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from "@/components/ui/accordion";
+
+import {
+  ShoppingCart,
+  Heart,
+  Minus,
+  Plus,
+  Check,
+  Truck,
+  Star,
+} from "lucide-react";
+
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+
 import { toast } from "sonner";
 
 interface Product {
+  _id: string;
+  name: string;
+  price: number;
+  stock: number;
+  productUrl: string[];
+  category: {
     _id: string;
     name: string;
-    price: number;
-    stock: number;
-    productUrl: string[];
-    category: {
-        _id: string;
-        name: string;
-        slug: string;
-    };
-    status: string;
-    sku: string;
-    description?: string;
+  };
+  status: string;
+  sku: string;
+  description?: string;
 }
 
-interface ProductDetailPageProps {
-    product: Product;
-}
+export default function ProductDetailPage({ product }: { product: Product }) {
+  const [quantity, setQuantity] = useState(1);
+  const [selectedImage, setSelectedImage] = useState(0);
+  const [isAdding, setIsAdding] = useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(false);
 
-export default function ProductDetailPage({ product }: ProductDetailPageProps) {
-    const [quantity, setQuantity] = useState(1);
-    const [selectedImage, setSelectedImage] = useState(0);
-    const [isAdding, setIsAdding] = useState(false);
-    const [isWishlisted, setIsWishlisted] = useState(false);
-
-    const handleAddToCart = async () => {
-        if (!product) return;
-        setIsAdding(true);
-
-        try {
-            const existingCart = localStorage.getItem("cart");
-            let cartItems = existingCart ? JSON.parse(existingCart) : [];
-
-            const existingIndex = cartItems.findIndex(
-                (item: any) => item.productId === product._id
-            );
-
-            const requestedQty = quantity;
-
-            if (existingIndex !== -1) {
-                const newQuantity = cartItems[existingIndex].quantity + requestedQty;
-                if (newQuantity > product.stock) {
-                    toast.error(`Only ${product.stock} items in stock. You already have ${cartItems[existingIndex].quantity} in your cart.`);
-                    setIsAdding(false);
-                    return;
-                }
-                cartItems[existingIndex].quantity = newQuantity;
-            } else {
-                cartItems.push({
-                    productId: product._id,
-                    name: product.name,
-                    price: product.price,
-                    quantity: requestedQty,
-                    image: product.productUrl[0],
-                    stock: product.stock,
-                    category: product.category.name,
-                });
-            }
-
-            localStorage.setItem("cart", JSON.stringify(cartItems));
-            window.dispatchEvent(new Event("cartUpdated"));
-
-            toast.success(`${product.name} added to cart!`);
-        } catch (error) {
-            console.error("Error adding to cart:", error);
-            toast.error("Failed to add product to cart");
-        } finally {
-            setIsAdding(false);
-        }
-    };
-
-    const updateQuantity = (delta: number) => {
-        const newQuantity = quantity + delta;
-        if (newQuantity >= 1 && newQuantity <= (product?.stock || 1)) {
-            setQuantity(newQuantity);
-        }
-    };
-
-    const handleWishlist = () => {
-        setIsWishlisted((prev) => !prev);
-        toast.success(isWishlisted ? `${product?.name} removed from wishlist!` : `${product?.name} added to wishlist!`);
-    };
-
-    if (!product) {
-        return (
-            <div className="container mx-auto px-4 py-8 text-center">
-                <h1 className="text-2xl font-bold mb-4">Product not found</h1>
-                <Link href="/shop">
-                    <Button>Continue Shopping</Button>
-                </Link>
-            </div>
-        );
+  const updateQuantity = (delta: number) => {
+    const newQty = quantity + delta;
+    if (newQty >= 1 && newQty <= product.stock) {
+      setQuantity(newQty);
     }
+  };
 
-    return (
-        <div className="min-h-screen bg-background">
-            <div className="container mx-auto px-4 py-8">
-                {/* Breadcrumb */}
-                <Breadcrumb className="mb-6">
-                    <BreadcrumbList>
-                        <BreadcrumbItem>
-                            <BreadcrumbLink href="/">Home</BreadcrumbLink>
-                        </BreadcrumbItem>
-                        <BreadcrumbSeparator />
-                        <BreadcrumbItem>
-                            <BreadcrumbLink href="/shop">Shop</BreadcrumbLink>
-                        </BreadcrumbItem>
-                        <BreadcrumbSeparator />
-                        <BreadcrumbItem>
-                            <BreadcrumbLink href={`/shop?category=${product.category._id}`}>
-                                {product.category.name}
-                            </BreadcrumbLink>
-                        </BreadcrumbItem>
-                        <BreadcrumbSeparator />
-                        <BreadcrumbItem>
-                            <BreadcrumbPage>{product.name}</BreadcrumbPage>
-                        </BreadcrumbItem>
-                    </BreadcrumbList>
-                </Breadcrumb>
+  const handleAddToCart = () => {
+    setIsAdding(true);
 
-                {/* Product Details */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-6">
-                    {/* Product Images */}
-                    <div className="space-y-4">
-                        <div className="aspect-square relative rounded-2xl overflow-hidden bg-muted">
-                            {product.productUrl && product.productUrl.length > 0 ? (
-                                <Image
-                                    src={product.productUrl[selectedImage]}
-                                    alt={product.name}
-                                    fill
-                                    className="object-cover"
-                                    priority
-                                />
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                                    <span className="text-gray-400">No image available</span>
-                                </div>
-                            )}
-                        </div>
+    try {
+      const existingCart = localStorage.getItem("cart");
+      let cartItems = existingCart ? JSON.parse(existingCart) : [];
 
-                        {product.productUrl && product.productUrl.length > 1 && (
-                            <div className="grid grid-cols-4 gap-2">
-                                {product.productUrl.map((url, index) => (
-                                    <button
-                                        key={index}
-                                        onClick={() => setSelectedImage(index)}
-                                        className={`aspect-square relative rounded-lg overflow-hidden border-2 transition-all ${selectedImage === index
-                                                ? "border-primary"
-                                                : "border-transparent hover:border-primary/50"
-                                            }`}
-                                    >
-                                        <Image
-                                            src={url}
-                                            alt={`${product.name} view ${index + 1}`}
-                                            fill
-                                            className="object-cover"
-                                        />
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                    </div>
+      const existingIndex = cartItems.findIndex(
+        (item: any) => item.productId === product._id
+      );
 
-                    {/* Product Info */}
-                    <div className="space-y-6">
-                        <div>
-                            <p className="text-sm text-muted-foreground mb-2">
-                                {product.category.name}
-                            </p>
-                            <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-                                {product.name}
-                            </h1>
-                            <p className="text-3xl font-bold text-primary">
-                                ${product.price.toLocaleString()}
-                            </p>
-                        </div>
+      const requestedQty = quantity;
 
-                        {/* Stock Status */}
-                        <div className="flex items-center gap-2">
-                            {product.stock > 0 ? (
-                                <>
-                                    <Check className="h-5 w-5 text-green-500" />
-                                    <span className="text-green-600 font-medium">
-                                        In Stock ({product.stock} available)
-                                    </span>
-                                </>
-                            ) : (
-                                <span className="text-red-500 font-medium">Out of Stock</span>
-                            )}
-                        </div>
+      if (existingIndex !== -1) {
+        const newQuantity =
+          cartItems[existingIndex].quantity + requestedQty;
 
-                        {/* Description */}
-                        {product.description && (
-                            <div className="border-t border-border pt-4">
-                                <h3 className="font-semibold text-foreground mb-2">Description</h3>
-                                <p className="text-muted-foreground">{product.description}</p>
-                            </div>
-                        )}
+        if (newQuantity > product.stock) {
+          toast.error(
+            `Only ${product.stock} items in stock. You already have ${cartItems[existingIndex].quantity} in cart`
+          );
+          setIsAdding(false);
+          return;
+        }
 
-                        {/* Quantity + Actions */}
-                        {product.stock > 0 && (
-                            <div className="space-y-3">
-                                <p className="font-medium text-foreground">Quantity</p>
-                                <div className="flex items-center gap-4">
-                                    <div className="flex items-center border border-border rounded-full">
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => updateQuantity(-1)}
-                                            disabled={quantity <= 1}
-                                            className="rounded-full"
-                                        >
-                                            <Minus className="h-4 w-4" />
-                                        </Button>
-                                        <span className="w-12 text-center font-medium">
-                                            {quantity}
-                                        </span>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => updateQuantity(1)}
-                                            disabled={quantity >= product.stock}
-                                            className="rounded-full"
-                                        >
-                                            <Plus className="h-4 w-4" />
-                                        </Button>
-                                    </div>
+        cartItems[existingIndex].quantity = newQuantity;
+      } else {
+        cartItems.push({
+          productId: product._id,
+          name: product.name,
+          price: product.price,
+          quantity: requestedQty,
+          image: product.productUrl[0],
+          stock: product.stock,
+          category: product.category.name,
+        });
+      }
 
-                                    <Button
-                                        onClick={handleAddToCart}
-                                        disabled={isAdding}
-                                        size="lg"
-                                        className="flex-1 rounded-full"
-                                    >
-                                        <ShoppingCart className="h-5 w-5 mr-2" />
-                                        {isAdding ? "Adding..." : "Add to Cart"}
-                                    </Button>
+      localStorage.setItem("cart", JSON.stringify(cartItems));
 
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        className="rounded-full"
-                                        onClick={handleWishlist}
-                                        aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
-                                    >
-                                        <Heart
-                                            className={`h-5 w-5 transition-colors ${isWishlisted ? "text-red-500 fill-red-500" : ""
-                                                }`}
-                                        />
-                                    </Button>
-                                </div>
-                            </div>
-                        )}
+      window.dispatchEvent(new Event("cartUpdated"));
 
-                        {/* Product Details */}
-                        <div className="border-t border-border pt-6">
-                            <h3 className="font-semibold text-foreground mb-3">Product Details</h3>
-                            <p className="text-muted-foreground text-sm">SKU: {product.sku}</p>
-                            {product.status && (
-                                <p className="text-muted-foreground text-sm mt-1">
-                                    Status: <span className="capitalize">{product.status.toLowerCase()}</span>
-                                </p>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+      toast.success(`${product.name} added to cart!`);
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to add product");
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
+  const handleWishlist = () => {
+    setIsWishlisted((prev) => !prev);
+    toast.success(
+      isWishlisted
+        ? "Removed from wishlist"
+        : "Added to wishlist"
     );
+  };
+
+  if (!product) {
+    return (
+      <div className="text-center py-20">
+        <h1 className="text-2xl font-bold">Product not found</h1>
+        <Link href="/shop">
+          <Button className="mt-4">Go Shop</Button>
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-10">
+
+        {/* Breadcrumb */}
+        <Breadcrumb className="mb-8">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/">Home</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/shop">Shop</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>{product.name}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+
+        {/* Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+
+          {/* LEFT: Images */}
+          <div className="space-y-4">
+            <div className="relative aspect-square rounded-2xl overflow-hidden bg-muted">
+              <Image
+                src={product.productUrl[selectedImage]}
+                alt={product.name}
+                fill
+                className="object-cover"
+              />
+            </div>
+
+            {/* Thumbnails */}
+            <div className="grid grid-cols-4 gap-2">
+              {product.productUrl.map((img, i) => (
+                <button
+                  key={i}
+                  onClick={() => setSelectedImage(i)}
+                  className={`aspect-square rounded-lg overflow-hidden border-2 ${selectedImage === i
+                      ? "border-primary"
+                      : "border-transparent hover:border-primary/50"
+                    }`}
+                >
+                  <Image
+                    src={img}
+                    alt="thumb"
+                    width={100}
+                    height={100}
+                    className="object-cover w-full h-full"
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* RIGHT: Product Info */}
+          <div className="space-y-6  lg:top-24 h-fit">
+
+            {/* Title */}
+            <div className="space-y-2">
+              <Badge variant="secondary">
+                {product.category.name}
+              </Badge>
+
+              <h1 className="text-3xl md:text-4xl font-bold">
+                {product.name}
+              </h1>
+
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                <span>4.9</span>
+                <span className="border-l pl-2">128 reviews</span>
+              </div>
+            </div>
+
+            {/* Price */}
+            <Card>
+              <CardContent className="flex items-center gap-4 py-5">
+                <span className="text-3xl font-bold text-primary">
+                  ${product.price}
+                </span>
+
+                <span className="line-through text-muted-foreground">
+                  ${(product.price * 1.1).toFixed(0)}
+                </span>
+
+                <Badge className="bg-green-100 text-green-700">
+                  SAVE 10%
+                </Badge>
+              </CardContent>
+            </Card>
+
+            {/* Shipping */}
+            <div className="flex items-center gap-3 p-3 border rounded-lg bg-muted/40">
+              <Truck className="w-5 h-5 text-primary" />
+              <span className="text-sm">
+                Free shipping over $100
+              </span>
+            </div>
+
+            {/* Stock */}
+            <div className="flex items-center gap-2">
+              {product.stock > 0 ? (
+                <>
+                  <Check className="text-green-500 w-5 h-5" />
+                  <span className="text-green-600">
+                    In Stock ({product.stock})
+                  </span>
+                </>
+              ) : (
+                <span className="text-red-500">Out of Stock</span>
+              )}
+            </div>
+
+            {/* Buy Section */}
+            {product.stock > 0 && (
+              <Card>
+                <CardContent className="space-y-4 py-5">
+
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">Quantity</span>
+
+                    <div className="flex items-center border rounded-full">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => updateQuantity(-1)}
+                      >
+                        <Minus className="w-4 h-4" />
+                      </Button>
+
+                      <span className="w-10 text-center">
+                        {quantity}
+                      </span>
+
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => updateQuantity(1)}
+                      >
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <Button
+                      className="flex-1 rounded-full cursor-pointer"
+                      size="lg"
+                      onClick={handleAddToCart}
+                    >
+                      <ShoppingCart className="mr-2 w-5 h-5" />
+                      {isAdding ? "Adding..." : "Add to Cart"}
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="rounded-full"
+                      onClick={handleWishlist}
+                    >
+                      <Heart
+                        className={`w-5 h-5 ${isWishlisted
+                            ? "fill-red-500 text-red-500"
+                            : ""
+                          }`}
+                      />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Accordion */}
+            <Accordion type="single" collapsible>
+              <AccordionItem value="details">
+                <AccordionTrigger>
+                  Product Details
+                </AccordionTrigger>
+                <AccordionContent>
+                  {product.description || "No description"}
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="specs">
+                <AccordionTrigger>
+                  Specifications
+                </AccordionTrigger>
+                <AccordionContent>
+                  <p className="text-sm">SKU: {product.sku}</p>
+                  <p className="text-sm">
+                    Status: {product.status}
+                  </p>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="shipping">
+                <AccordionTrigger>
+                  Shipping & Returns
+                </AccordionTrigger>
+                <AccordionContent>
+                  Free shipping. 30-day returns.
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }

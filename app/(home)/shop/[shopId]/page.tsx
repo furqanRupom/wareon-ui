@@ -9,7 +9,8 @@ export const metadata = {
         "Explore our wide range of products across various categories. Find the best deals and latest arrivals at Wareon.",
 };
 
-export default async  function Page({ params }: { params: { shopId: string } }) {
+export default async  function Page({ params }: { params: Promise<{ shopId: string }> }) {
+
      const {shopId} = await params
      const result = await getProduct(shopId)
     return <ProductDetailPage product={result.data || {}} />;
