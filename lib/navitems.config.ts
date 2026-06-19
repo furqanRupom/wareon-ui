@@ -14,8 +14,8 @@ const commonNavItems: NavItem[] = [
         roles: ["admin", "manager", "user"],
     },
     {
-        title: "Change Password",
-        href: "/change-password",
+        title: "Settings",
+        href: "/settings",
         icon: "Settings",
         roles: ["admin", "manager", "user"],
     },

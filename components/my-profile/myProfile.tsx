@@ -1,122 +1,198 @@
 "use client";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import {
+  Avatar,
+  AvatarImage,
+  AvatarFallback,
+} from "@/components/ui/avatar";
+
 import { updateMyProfile } from "@/services/auth/auth.service";
 import { UserInfo } from "@/types/user.interface";
-import { Camera, Loader2, Save } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
 
-interface MyProfileProps {
-    userInfo: UserInfo;
+import { Loader2, Save, Camera } from "lucide-react";
+
+interface Props {
+  userInfo: UserInfo;
 }
 
-const MyProfile = ({ userInfo }: MyProfileProps) => {
-    const router = useRouter();
-    const [isPending, startTransition] = useTransition();
-    const [error, setError] = useState<string | null>(null);
-    const [success, setSuccess] = useState<string | null>(null);
+export default function MyProfile({ userInfo }: Props) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [success, setSuccess] = useState("");
+  const [error, setError] = useState("");
 
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        setError(null);
-        setSuccess(null);
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
 
-        const formData = new FormData(e.currentTarget);
+    const formData = new FormData(e.currentTarget);
 
-        startTransition(async () => {
-            const result = await updateMyProfile(formData);
-            console.log(result)
+    startTransition(async () => {
+      const res = await updateMyProfile(formData);
 
-            if (result.success) {
-                setSuccess(result.message);
-                router.refresh();
-            } else {
-                setError(result.message);
-            }
-        });
-    };
+      if (res.success) {
+        setSuccess(res.message);
+        router.refresh();
+      } else {
+        setError(res.message);
+      }
+    });
+  };
 
-    return (
-        <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold">My Profile</h1>
-                <p className="text-muted-foreground mt-1">
-                    Manage your personal information
-                </p>
+  return (
+    <div className="max-w-6xl mx-auto space-y-8">
+
+      <Card>
+        <CardContent className="flex flex-col md:flex-row items-center gap-6 p-6">
+          
+          <div className="relative">
+            <Avatar className="w-28 h-28 border-4 border-primary/20">
+              <AvatarImage src={userInfo.avatar} />
+              <AvatarFallback className="text-2xl">
+                {userInfo.name?.charAt(0)?.toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+
+            <label className="absolute bottom-0 right-0 cursor-pointer">
+              <input
+                type="text"
+                name="avatar"
+                className="hidden"
+              />
+              <div className="bg-primary text-white p-2 rounded-full hover:scale-105 transition">
+                <Camera className="w-4 h-4" />
+              </div>
+            </label>
+          </div>
+
+          <div className="text-center md:text-left">
+            <h2 className="text-2xl font-bold">
+              {userInfo.name}
+            </h2>
+            <p className="text-muted-foreground">
+              {userInfo.email}
+            </p>
+
+            <span className="inline-block mt-2 text-xs bg-primary/10 text-primary px-3 py-1 rounded-full">
+              {userInfo.role?.toUpperCase()}
+            </span>
+          </div>
+        </CardContent>
+      </Card>
+
+      <form onSubmit={handleSubmit}>
+        <Card>
+          <CardHeader>
+            <CardTitle>Personal Information</CardTitle>
+          </CardHeader>
+
+          <CardContent className="space-y-6">
+
+            {/* Alerts */}
+            {error && (
+              <p className="text-red-500 text-sm">{error}</p>
+            )}
+            {success && (
+              <p className="text-green-600 text-sm">{success}</p>
+            )}
+
+            {/* Basic Info */}
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <Label>Name</Label>
+                <Input
+                  name="name"
+                  defaultValue={userInfo.name}
+                  disabled={isPending}
+                />
+              </div>
+
+              <div>
+                <Label>Email</Label>
+                <Input
+                  value={userInfo.email}
+                  disabled
+                />
+              </div>
+
+              <div>
+                <Label>Phone</Label>
+                <Input
+                  name="phone"
+                  defaultValue={userInfo.phone}
+                />
+              </div>
+
             </div>
 
-            <form onSubmit={handleSubmit}>
-                <div className="grid gap-6 lg:grid-cols-3">
-             
+            {/* Address */}
+            <div className="space-y-4">
+              <h3 className="font-semibold">Address</h3>
 
-                    {/* Profile Information Card */}
-                    <Card className="lg:col-span-2">
-                        <CardHeader>
-                            <CardTitle>Personal Information</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            {error && (
-                                <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-md text-sm">
-                                    {error}
-                                </div>
-                            )}
+              <Input
+                name="addressLine"
+                placeholder="Address Line"
+                defaultValue={userInfo.addressLine}
+              />
 
-                            {success && (
-                                <div className="bg-green-500/10 text-green-600 px-4 py-3 rounded-md text-sm">
-                                    {success}
-                                </div>
-                            )}
+              <div className="grid md:grid-cols-3 gap-4">
+                <Input
+                  name="city"
+                  placeholder="City"
+                  defaultValue={userInfo.city}
+                />
+                <Input
+                  name="state"
+                  placeholder="State"
+                  defaultValue={userInfo.state}
+                />
+                <Input
+                  name="postalCode"
+                  placeholder="Postal Code"
+                  defaultValue={userInfo.postalCode}
+                />
+              </div>
 
-                            <div className="grid gap-4 md:grid-cols-2">
-                                {/* Common Fields for All Roles */}
-                                <div className="space-y-2">
-                                    <Label htmlFor="name">Full Name</Label>
-                                    <Input
-                                        id="name"
-                                        name="name"
-                                        defaultValue={userInfo.name || ""}
-                                        required
-                                        disabled={isPending}
-                                    />
-                                </div>
+              <Input
+                name="country"
+                placeholder="Country"
+                defaultValue={userInfo.country}
+              />
+            </div>
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="email">Email</Label>
-                                    <Input
-                                        id="email"
-                                        type="email"
-                                        value={userInfo.email}
-                                        disabled
-                                        className="bg-muted"
-                                    />
-                                </div>
-                            </div>
+            {/* Submit */}
+            <div className="flex justify-end ">
+              <Button className="cursor-pointer" disabled={isPending}>
+                {isPending ? (
+                  <>
+                    <Loader2 className="mr-2 w-4 h-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 w-4 h-4" />
+                    Save Changes
+                  </>
+                )}
+              </Button>
+            </div>
 
-                            <div className="flex justify-end pt-4">
-                                <Button type="submit" disabled={isPending}>
-                                    {isPending ? (
-                                        <>
-                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                            Updating...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Save className="mr-2 h-4 w-4" />
-                                            Save Changes
-                                        </>
-                                    )}
-                                </Button>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-            </form>
-        </div>
-    );
-};
-
-export default MyProfile;
+          </CardContent>
+        </Card>
+      </form>
+    </div>
+  );
+}

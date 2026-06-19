@@ -1,7 +1,8 @@
 import MyProfile from "@/components/my-profile/myProfile";
 import { getUserInfo } from "@/services/auth/getUserInfo";
+import { Metadata } from "next";
 
-export const metadata = {
+export const metadata:Metadata = {
     title: "My Profile - Wareon",
     description: "View and edit your profile information",
 };

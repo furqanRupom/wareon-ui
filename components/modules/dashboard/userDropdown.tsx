@@ -47,9 +47,9 @@ const UserDropdown = ({ userInfo }: UserDropdownProps) => {
                     </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                    <Link href={"/change-password"} className="cursor-pointer">
+                    <Link href={"/settings"} className="cursor-pointer">
                         <Settings className="mr-2 h-4 w-4" />
-                        Change Password
+                        Settings
                     </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

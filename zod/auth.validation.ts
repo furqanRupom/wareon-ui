@@ -15,10 +15,48 @@ export const registerValidationZodSchema = z.object({
     path: ["confirmPassword"],
 });
 
+
+
 export const updateProfileValidationSchema = z.object({
-    name: z.string().min(5, "Name is required and must be at least 5 characters long").max(50, "Name must be at most 50 characters long").optional(),
-    email: z.email("Email is required and must be a valid email address").optional(),
-});
+  name: z
+    .string()
+    .max(50, "Name must be at most 50 characters long")
+    .optional(),
+
+  email: z
+    .string()
+    .optional(),
+
+  phone: z
+    .string()
+    .max(20, "Phone must be at most 20 characters")
+    .optional(),
+
+  addressLine: z
+    .string()
+    .max(100, "Address is too long")
+    .optional(),
+
+  state: z
+    .string()
+    .max(50, "State is too long")
+    .optional(),
+
+  country: z
+    .string()
+    .max(50, "Country is too long")
+    .optional(),
+
+  city: z
+    .string()
+    .max(50, "City is too long")
+    .optional(),
+
+  postalCode: z
+    .string()
+    .max(20, "Postal code is too long")
+    .optional(),
+})
 
 export const changePasswordSchema = z.object({
     currentPassword: z.string().min(8, "Current Password is required and must be at least 8 characters long"),

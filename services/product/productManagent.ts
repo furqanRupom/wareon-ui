@@ -167,6 +167,7 @@ export async function deleteProduct(productId:string){
 export async function getProduct(productId: string) {
     try {
         const response = await serverFetch.get(`/product/${productId}`)
+
         const result = await response.json();
         return result;
     } catch (error: any) {

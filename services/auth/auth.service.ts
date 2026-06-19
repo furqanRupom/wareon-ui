@@ -3,12 +3,19 @@
 import { serverFetch } from "@/lib/server-fetch";
 import { zodValidator } from "@/lib/zodValidator";
 import { changePasswordSchema, updateProfileValidationSchema } from "@/zod/auth.validation";
+import { revalidateTag } from "next/cache";
 
 
 export const updateMyProfile = async ( formData: FormData): Promise<any> => {
     try {
         const updateData = {
             name: formData.get("name"),
+            phone: formData.get("phone"),
+            adressLine:formData.get("addressLine"),
+            state:formData.get("state"),
+            country:formData.get("country"),
+            city:formData.get("city"),
+            postalCode:formData.get("postalCode")
         }
 
         if (zodValidator(updateData, updateProfileValidationSchema).success === false) {
@@ -26,10 +33,15 @@ export const updateMyProfile = async ( formData: FormData): Promise<any> => {
         })
 
         const data = await response.json();
- 
+
         console.log(data)
+        if(data.success) {
+            revalidateTag("user-info",{expire:0})
+        }
+ 
         return data;
     } catch (error: any) {
+      console.log(error)
         if (error?.digest?.startsWith('NEXT_REDIRECT')) {
             throw error;
         }

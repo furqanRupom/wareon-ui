@@ -7,7 +7,6 @@ import { getCookie } from "./tokenHandlers";
 import { UserInfo } from "@/types/user.interface";
 
 export const getUserInfo = async (): Promise<UserInfo | any> => {
-    let userInfo: UserInfo | any;
     try {
 
         const response = await serverFetch.get("/auth/me", {
@@ -25,18 +24,15 @@ export const getUserInfo = async (): Promise<UserInfo | any> => {
             }
 
             const verifiedToken = jwt.decode(accessToken) as JwtPayload;
-
-            userInfo = {
-                name: verifiedToken.name || "Unknown User",
-                email: verifiedToken.email,
-                role: verifiedToken.role,
+            if(!verifiedToken){
+                throw new Error("Token verification failed")
             }
         }
 
     
 
 
-        return userInfo;
+        return result.data;
     } catch (error: any) {
         console.log(error);
         return {
