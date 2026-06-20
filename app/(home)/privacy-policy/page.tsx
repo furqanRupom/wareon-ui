@@ -1,13 +1,10 @@
-// app/privacy-policy/page.tsx
 import { Metadata } from "next";
 import {
   Calendar,
   Mail,
   MapPin,
-  Shield,
   Settings,
   UserCheck,
-  ArrowUp,
   BookMarked,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,13 +12,15 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Privacy Policy - Wareon",
-  description: "At Wareon, we prioritize the protection of your personal information. Learn about our privacy practices and your rights.",
+  description:
+    "At Wareon, we prioritize the protection of your personal information. Learn about our privacy practices and your rights.",
 };
 
 export default function PrivacyPolicyPage() {
   const tableOfContents = [
     { id: "data-collection", label: "Data Collection" },
     { id: "usage", label: "How We Use Your Info" },
+    { id: "payments", label: "Payment Policy (COD)" },
     { id: "cookies", label: "Cookies Policy" },
     { id: "contact", label: "Contact Us" },
   ];
@@ -30,29 +29,33 @@ export default function PrivacyPolicyPage() {
     {
       icon: Settings,
       title: "Maintenance",
-      description: "To provide and maintain our Service, including monitoring usage.",
+      description:
+        "To provide and maintain our Service, including monitoring usage.",
     },
     {
       icon: UserCheck,
       title: "Account Management",
-      description: "To manage your registration as a user of the Service.",
+      description:
+        "To manage your registration as a user of the Service.",
     },
     {
       icon: UserCheck,
       title: "Communications",
-      description: "To contact you by email, phone, or SMS regarding updates or information.",
+      description:
+        "To contact you regarding order updates, delivery, or support.",
     },
     {
       icon: BookMarked,
       title: "Analysis",
-      description: "To gather analysis or valuable information so that we can improve our Service.",
+      description:
+        "To improve our Service and user experience.",
     },
   ];
 
   return (
     <main className="pt-32 pb-16 px-4 md:px-6">
       <div className="max-w-[800px] mx-auto">
-        {/* Header Section */}
+        {/* Header */}
         <div className="mb-12">
           <p className="text-sm font-bold text-primary uppercase tracking-wider mb-2">
             Legal Documentation
@@ -62,20 +65,24 @@ export default function PrivacyPolicyPage() {
           </h1>
           <div className="flex items-center gap-2 text-muted-foreground text-sm">
             <Calendar className="w-4 h-4" />
-            <span>Last updated: October 24, 2023</span>
+            <span>Last updated: June 2026</span>
           </div>
         </div>
 
-        {/* Introduction */}
+        {/* Intro */}
         <section className="mb-12">
           <p className="text-lg text-muted-foreground leading-relaxed">
-            At Wareon, we prioritize the protection of your personal information. This Privacy Policy outlines our practices regarding the collection, use, and disclosure of your information when you use our service and tells you about your privacy rights and how the law protects you.
+            At Wareon, we value your privacy and are committed to protecting your
+            personal data. This Privacy Policy explains how we collect, use, and
+            safeguard your information when you use our platform.
           </p>
         </section>
 
-        {/* Table of Contents */}
-        <div className="p-6 bg-surface-container rounded-xl border border-outline-variant mb-12">
-          <p className="text-sm font-bold text-primary mb-3">TABLE OF CONTENTS</p>
+        {/* TOC */}
+        <div className="p-6 bg-surface-container rounded-xl border mb-12">
+          <p className="text-sm font-bold text-primary mb-3">
+            TABLE OF CONTENTS
+          </p>
           <ul className="space-y-2">
             {tableOfContents.map((item) => (
               <li key={item.id}>
@@ -83,7 +90,7 @@ export default function PrivacyPolicyPage() {
                   href={`#${item.id}`}
                   className="text-foreground hover:text-primary transition-colors flex items-center gap-2 text-sm"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary-fixed-dim" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary" />
                   {item.label}
                 </Link>
               </li>
@@ -94,108 +101,105 @@ export default function PrivacyPolicyPage() {
         <div className="space-y-12">
           {/* Data Collection */}
           <section id="data-collection">
-            <h2 className="text-2xl font-bold text-foreground mb-3 flex items-center gap-3">
-              <span className="w-8 h-8 rounded-lg bg-secondary-container text-on-secondary-container flex items-center justify-center font-bold text-sm">
-                01
-              </span>
-              Data Collection
+            <h2 className="text-2xl font-bold mb-3">Data Collection</h2>
+            <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
+              <li>
+                <strong>Personal Data:</strong> Name, phone number, address for
+                delivery.
+              </li>
+              <li>
+                <strong>Usage Data:</strong> Device info, IP, pages visited.
+              </li>
+              <li>
+                <strong>Order Information:</strong> Products ordered and delivery
+                details.
+              </li>
+            </ul>
+          </section>
+
+          {/* Usage */}
+          <section id="usage">
+            <h2 className="text-2xl font-bold mb-3">
+              How We Use Your Info
             </h2>
-            <div className="space-y-3 text-muted-foreground leading-relaxed">
+            <div className="grid md:grid-cols-2 gap-3">
+              {usagePurposes.map((purpose) => (
+                <div
+                  key={purpose.title}
+                  className="p-4 rounded-lg border"
+                >
+                  <purpose.icon className="w-5 h-5 mb-2 text-primary" />
+                  <h3 className="font-bold">{purpose.title}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {purpose.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* COD Payment Policy */}
+          <section id="payments">
+            <h2 className="text-2xl font-bold mb-3">
+              Payment Policy (Cash on Delivery)
+            </h2>
+            <div className="space-y-3 text-muted-foreground">
               <p>
-                We collect several different types of information for various purposes to provide and improve our Service to you. This includes:
+                Wareon currently supports <strong>Cash on Delivery (COD)</strong>{" "}
+                as the only payment method.
               </p>
-              <ul className="list-disc pl-6 space-y-2 marker:text-primary">
+              <ul className="list-disc pl-6 space-y-2">
                 <li>
-                  <strong>Personal Data:</strong> While using our Service, we may ask you to provide us with certain personally identifiable information that can be used to contact or identify you, such as your email address, first and last name, and phone number.
+                  Customers are required to pay in cash at the time of delivery.
                 </li>
                 <li>
-                  <strong>Usage Data:</strong> Usage Data is collected automatically when using the Service. This may include your Device's IP address, browser type, browser version, and the pages of our Service that you visit.
+                  We do <strong>not collect or store</strong> any online payment
+                  information such as card or banking details.
                 </li>
                 <li>
-                  <strong>Transaction Info:</strong> Details about payments to and from you and other details of products and services you have purchased from us.
+                  Your contact and delivery information is used only to fulfill
+                  your order.
+                </li>
+                <li>
+                  Orders may be cancelled if delivery cannot be completed.
                 </li>
               </ul>
             </div>
           </section>
 
-          {/* How We Use Your Info */}
-          <section id="usage">
-            <h2 className="text-2xl font-bold text-foreground mb-3 flex items-center gap-3">
-              <span className="w-8 h-8 rounded-lg bg-secondary-container text-on-secondary-container flex items-center justify-center font-bold text-sm">
-                02
-              </span>
-              How We Use Your Info
-            </h2>
-            <div className="space-y-3 text-muted-foreground leading-relaxed">
-              <p>
-                Wareon uses the collected data for various purposes:
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {usagePurposes.map((purpose) => (
-                  <div key={purpose.title} className="p-4 bg-surface-container-low rounded-lg border border-outline-variant">
-                    <purpose.icon className="w-5 h-5 text-primary mb-2" />
-                    <h3 className="font-bold mb-1 text-foreground">{purpose.title}</h3>
-                    <p className="text-sm text-muted-foreground">{purpose.description}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* Cookies Policy */}
+          {/* Cookies */}
           <section id="cookies">
-            <h2 className="text-2xl font-bold text-foreground mb-3 flex items-center gap-3">
-              <span className="w-8 h-8 rounded-lg bg-secondary-container text-on-secondary-container flex items-center justify-center font-bold text-sm">
-                03
-              </span>
-              Cookies Policy
-            </h2>
-            <div className="space-y-3 text-muted-foreground leading-relaxed">
-              <p>
-                We use Cookies and similar tracking technologies to track the activity on Our Service and store certain information. Cookies are files with small amounts of data which may include an anonymous unique identifier.
-              </p>
-              <div className="border-l-4 border-primary bg-primary-container/10 p-4 italic text-sm">
-                "You can instruct your browser to refuse all cookies or to indicate when a cookie is being sent. However, if you do not accept cookies, you may not be able to use some portions of our Service."
-              </div>
-            </div>
+            <h2 className="text-2xl font-bold mb-3">Cookies Policy</h2>
+            <p className="text-muted-foreground">
+              We use cookies to improve user experience and analyze traffic.
+              You can disable cookies in your browser settings.
+            </p>
           </section>
 
-          {/* Contact Us */}
-          <section
-            id="contact"
-            className="bg-surface-container rounded-2xl p-8 border border-outline-variant"
-          >
-            <h2 className="text-2xl font-bold text-foreground mb-2">Contact Us</h2>
-            <p className="text-muted-foreground mb-6">
-              If you have any questions about this Privacy Policy, you can contact our data protection officer:
+          {/* Contact */}
+          <section id="contact" className="border rounded-2xl p-6">
+            <h2 className="text-2xl font-bold mb-2">Contact Us</h2>
+            <p className="text-muted-foreground mb-4">
+              If you have any questions, contact us:
             </p>
+
             <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-sm text-primary">
-                  <Mail className="w-6 h-6" />
-                </div>
-                <div>
-                  <p className="font-bold text-foreground">Email Address</p>
-                  <p className="text-muted-foreground">privacy@wareon-retail.com</p>
-                </div>
+              <div className="flex items-center gap-3">
+                <Mail className="w-5 h-5" />
+                <span>privacy@wareon-retail.com</span>
               </div>
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-sm text-primary">
-                  <MapPin className="w-6 h-6" />
-                </div>
-                <div>
-                  <p className="font-bold text-foreground">Headquarters</p>
-                  <p className="text-muted-foreground">123 Commerce Way, Tech District, SF 94103</p>
-                </div>
+              <div className="flex items-center gap-3">
+                <MapPin className="w-5 h-5" />
+                <span>Dhaka, Bangladesh</span>
               </div>
             </div>
-            <Button className="mt-6 w-full md:w-auto bg-primary hover:bg-primary/90 cursor-pointer px-6 py-2 rounded-lg font-bold transition-all active:scale-95">
+
+            <Button className="mt-4 w-full md:w-auto">
               Submit a Request
             </Button>
           </section>
         </div>
       </div>
-
     </main>
   );
 }

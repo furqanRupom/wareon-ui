@@ -1,7 +1,5 @@
 // app/order/[orderId]/page.tsx
-import { Suspense } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { CheckCircle, Package, Truck, Calendar, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
