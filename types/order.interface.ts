@@ -31,3 +31,14 @@ export interface IOrders {
     createdAt: string;
     updatedAt: string;
 }
+
+export interface ICreateOrderPayload {
+    customerName: string;
+    items: { productId: string; quantity: number }[];
+    notes?: string;
+    address: string;
+    phone: string;
+    alternatePhone?: string;
+    city?: string;
+    landmark?: string;
+}

@@ -44,7 +44,7 @@ export default function OrderPage() {
                         </p>
                     </div>
                     <Link href="/shop">
-                        <Button variant="outline" className="rounded-full">
+                        <Button variant="outline" className="rounded-full cursor-pointer">
                             <ArrowLeft className="h-4 w-4 mr-2" />
                             Continue Shopping
                         </Button>

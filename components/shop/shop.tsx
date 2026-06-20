@@ -7,7 +7,15 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Search, SlidersHorizontal, X } from "lucide-react";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -56,18 +64,28 @@ interface ProductsResult {
 interface ShopProps {
     initialData: ProductsResult;
     categories: Category[];
-    // Seeded from URL params by the server page
     initialPage?: number;
     initialSearch?: string;
     initialCategories?: string[];
     initialMinPrice?: number;
     initialMaxPrice?: number;
+    initialSort?: string;
+    initialInStock?: boolean;
 }
 
 const MAX_PRICE = 10000;
 const DEBOUNCE_MS = 500;
 const SKELETON_COUNT = 6;
 const DEFAULT_LIMIT = 12;
+
+const SORT_OPTIONS = [
+    { value: "newest", label: "Newest" },
+    { value: "oldest", label: "Oldest" },
+    { value: "price-asc", label: "Price: Low to High" },
+    { value: "price-desc", label: "Price: High to Low" },
+    { value: "name-asc", label: "Name: A to Z" },
+    { value: "name-desc", label: "Name: Z to A" },
+];
 
 async function fetchProductsAction(
     _prev: ProductsResult,
@@ -84,6 +102,8 @@ export default function ShopPage({
     initialCategories = [],
     initialMinPrice = 0,
     initialMaxPrice = MAX_PRICE,
+    initialSort = "newest",
+    initialInStock = false,
 }: ShopProps) {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
@@ -91,10 +111,11 @@ export default function ShopPage({
 
     const [state, dispatch] = useActionState(fetchProductsAction, initialData);
 
-    // Seed state from URL params so UI matches the server-rendered data on first paint
     const [searchTerm, setSearchTerm] = useState(initialSearch);
     const [priceRange, setPriceRange] = useState<[number, number]>([initialMinPrice, initialMaxPrice]);
     const [selectedCategories, setSelectedCategories] = useState<string[]>(initialCategories);
+    const [sortBy, setSortBy] = useState(initialSort);
+    const [inStockOnly, setInStockOnly] = useState(initialInStock);
     const [currentPage, setCurrentPage] = useState(initialPage);
     const [filterOpen, setFilterOpen] = useState(false);
 
@@ -104,6 +125,8 @@ export default function ShopPage({
         if (selectedCategories.length > 0) params.set("category", selectedCategories.join(","));
         if (priceRange[0] > 0) params.set("minPrice", String(priceRange[0]));
         if (priceRange[1] < MAX_PRICE) params.set("maxPrice", String(priceRange[1]));
+        if (sortBy !== "newest") params.set("sort", sortBy);
+        if (inStockOnly) params.set("inStock", "true");
         params.set("page", String(page));
         params.set("limit", String(DEFAULT_LIMIT));
 
@@ -114,8 +137,6 @@ export default function ShopPage({
         });
     };
 
-    // Reset to page 1 and debounce whenever filters change.
-    // Skip on first mount — the server already fetched the correct data.
     useEffect(() => {
         if (isFirstRender.current) {
             isFirstRender.current = false;
@@ -125,9 +146,17 @@ export default function ShopPage({
         setCurrentPage(1);
         const timer = setTimeout(() => buildAndDispatch(1), DEBOUNCE_MS);
         return () => clearTimeout(timer);
-    }, [searchTerm, selectedCategories, priceRange]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchTerm, selectedCategories, priceRange, inStockOnly]);
 
-    // Immediate dispatch when page changes (no debounce needed)
+    // Sort changes apply immediately, no debounce needed
+    useEffect(() => {
+        if (isFirstRender.current) return;
+        setCurrentPage(1);
+        buildAndDispatch(1);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [sortBy]);
+
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
         buildAndDispatch(page);
@@ -142,23 +171,37 @@ export default function ShopPage({
         );
     };
 
+    const removeCategory = (categoryId: string) => {
+        setSelectedCategories((prev) => prev.filter((c) => c !== categoryId));
+    };
+
     const clearFilters = () => {
         setSearchTerm("");
         setSelectedCategories([]);
         setPriceRange([0, MAX_PRICE]);
+        setInStockOnly(false);
+        setSortBy("newest");
     };
 
     const hasActiveFilters =
-        !!searchTerm || selectedCategories.length > 0 || priceRange[0] > 0 || priceRange[1] < MAX_PRICE;
+        !!searchTerm ||
+        selectedCategories.length > 0 ||
+        priceRange[0] > 0 ||
+        priceRange[1] < MAX_PRICE ||
+        inStockOnly;
 
     const activeFilterCount =
         selectedCategories.length +
-        (priceRange[0] > 0 || priceRange[1] < MAX_PRICE ? 1 : 0);
+        (priceRange[0] > 0 || priceRange[1] < MAX_PRICE ? 1 : 0) +
+        (inStockOnly ? 1 : 0);
 
     const products: Product[] = state?.data ?? [];
     const total: number = state?.meta?.total ?? 0;
     const limit: number = state?.meta?.limit ?? DEFAULT_LIMIT;
     const totalPages = Math.ceil(total / limit);
+
+    const categoryName = (id: string) =>
+        categories.find((c) => c._id === id)?.name ?? id;
 
     const FilterSidebar = () => (
         <div className="space-y-6">
@@ -196,14 +239,44 @@ export default function ShopPage({
                         onValueChange={(value: any) => setPriceRange(value as [number, number])}
                         className="w-full"
                     />
-                    <div className="flex justify-between text-sm text-muted-foreground">
-                        <span>${priceRange[0].toLocaleString()}</span>
-                        <span>
-                            {priceRange[1] >= MAX_PRICE
-                                ? `$${MAX_PRICE.toLocaleString()}+`
-                                : `$${priceRange[1].toLocaleString()}`}
-                        </span>
+                    <div className="flex items-center gap-2">
+                        <Input
+                            type="number"
+                            min={0}
+                            value={priceRange[0]}
+                            onChange={(e) =>
+                                setPriceRange([Number(e.target.value) || 0, priceRange[1]])
+                            }
+                            className="h-8 text-sm"
+                        />
+                        <span className="text-muted-foreground text-sm">to</span>
+                        <Input
+                            type="number"
+                            min={0}
+                            value={priceRange[1]}
+                            onChange={(e) =>
+                                setPriceRange([priceRange[0], Number(e.target.value) || MAX_PRICE])
+                            }
+                            className="h-8 text-sm"
+                        />
                     </div>
+                </div>
+            </div>
+
+            <div>
+                <h3 className="font-semibold text-foreground mb-3">Availability</h3>
+                <div className="flex items-center space-x-2">
+                    <Checkbox
+                        id="in-stock"
+                        checked={inStockOnly}
+                        onCheckedChange={(checked) => setInStockOnly(checked === true)}
+                    />
+                    <Label
+                        htmlFor="in-stock"
+                        className="text-sm text-muted-foreground hover:text-foreground cursor-pointer"
+                    >
+                        In stock only
+                    </Label>
                 </div>
             </div>
 
@@ -231,9 +304,9 @@ export default function ShopPage({
                     </BreadcrumbList>
                 </Breadcrumb>
 
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                     <h1 className="text-3xl md:text-4xl font-bold text-foreground">Shop</h1>
-                    <div className="flex items-center gap-3 w-full md:w-auto">
+                    <div className="flex items-center gap-3 w-full md:w-auto flex-wrap">
                         <div className="relative flex-1 md:w-72">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input
@@ -251,6 +324,19 @@ export default function ShopPage({
                                 </button>
                             )}
                         </div>
+
+                        <Select value={sortBy} onValueChange={setSortBy}>
+                            <SelectTrigger className="w-44 shrink-0">
+                                <SelectValue placeholder="Sort by" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {SORT_OPTIONS.map((opt) => (
+                                    <SelectItem key={opt.value} value={opt.value}>
+                                        {opt.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
 
                         <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
                             <SheetTrigger asChild>
@@ -275,6 +361,48 @@ export default function ShopPage({
                         </Sheet>
                     </div>
                 </div>
+
+                {/* Active filter chips */}
+                {hasActiveFilters && (
+                    <div className="flex flex-wrap items-center gap-2 mb-6">
+                        {selectedCategories.map((id) => (
+                            <Badge key={id} variant="secondary" className="gap-1 pr-1">
+                                {categoryName(id)}
+                                <button
+                                    onClick={() => removeCategory(id)}
+                                    className="ml-1 rounded-full hover:bg-muted-foreground/20 p-0.5"
+                                >
+                                    <X className="h-3 w-3" />
+                                </button>
+                            </Badge>
+                        ))}
+                        {(priceRange[0] > 0 || priceRange[1] < MAX_PRICE) && (
+                            <Badge variant="secondary" className="gap-1 pr-1">
+                                ${priceRange[0]} - ${priceRange[1]}
+                                <button
+                                    onClick={() => setPriceRange([0, MAX_PRICE])}
+                                    className="ml-1 rounded-full hover:bg-muted-foreground/20 p-0.5"
+                                >
+                                    <X className="h-3 w-3" />
+                                </button>
+                            </Badge>
+                        )}
+                        {inStockOnly && (
+                            <Badge variant="secondary" className="gap-1 pr-1">
+                                In stock only
+                                <button
+                                    onClick={() => setInStockOnly(false)}
+                                    className="ml-1 rounded-full hover:bg-muted-foreground/20 p-0.5"
+                                >
+                                    <X className="h-3 w-3" />
+                                </button>
+                            </Badge>
+                        )}
+                        <Button variant="ghost" size="sm" onClick={clearFilters} className="h-6 text-xs">
+                            Clear all
+                        </Button>
+                    </div>
+                )}
 
                 <div className="flex gap-8">
                     <aside className="hidden md:block w-64 shrink-0">

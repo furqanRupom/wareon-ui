@@ -41,6 +41,7 @@ import { revalidateTag } from "next/cache";
 
 */
 
+
 export async function createOrder(prevState: any, formData: FormData) {
     let items: IOrderItem[] = [];
 
@@ -58,6 +59,11 @@ export async function createOrder(prevState: any, formData: FormData) {
         customerName: formData.get("customerName") as string,
         items,
         notes: formData.get("notes") as string | null,
+        address: formData.get("address") as string,
+        phone: formData.get("phone") as string,
+        alternatePhone: formData.get("alternatePhone") as string | null,
+        city: formData.get("city") as string | null,
+        landmark: formData.get("landmark") as string | null,
     };
 
     const validatedPayload = zodValidator(validationPayload, createOrderSchema);
@@ -69,7 +75,6 @@ export async function createOrder(prevState: any, formData: FormData) {
             errors: validatedPayload.errors,
         };
     }
-
 
     try {
         const response = await serverFetch.post("/order", {
@@ -109,7 +114,6 @@ export async function createOrder(prevState: any, formData: FormData) {
         };
     }
 }
-
 export async function getOrders(queryString?: string) {
     try {
         const response = await serverFetch.get(`/order${queryString ? `?${queryString}` : ""}`, {

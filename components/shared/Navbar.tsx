@@ -14,7 +14,10 @@ const PublicNavbar = async () => {
   const navItems = [
     { href: "/shop", label: "Shop" },
     { href: "/brands", label: "Brands" },
+    { href: "/our-story", label: "Our Story" },
+    { href: "/faq", label: "Faq" },
     { href: "/privacy-policy", label: "Privacy & Policy" },
+
   ];
 
   const accessToken = await getCookie("accessToken");

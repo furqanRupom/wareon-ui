@@ -3,9 +3,9 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { ShoppingCart, Heart } from "lucide-react";
+import { ShoppingCart, Heart, ImageOff } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface Product {
     _id: string;
@@ -24,13 +24,18 @@ interface ProductCardProps {
     product: Product;
 }
 
+const LOW_STOCK_THRESHOLD = 15;
+
 export default function ProductCard({ product }: ProductCardProps) {
     const [isAdding, setIsAdding] = useState(false);
     const [isWishlisted, setIsWishlisted] = useState(false);
 
+    const outOfStock = product.stock === 0;
+    const lowStock = !outOfStock && product.stock <= LOW_STOCK_THRESHOLD;
+
     const handleAddToCart = async (e: React.MouseEvent) => {
         e.preventDefault();
-        if (product.stock === 0) return;
+        if (outOfStock || isAdding) return;
 
         setIsAdding(true);
         try {
@@ -44,7 +49,9 @@ export default function ProductCard({ product }: ProductCardProps) {
             if (existingIndex !== -1) {
                 const newQuantity = cartItems[existingIndex].quantity + 1;
                 if (newQuantity > product.stock) {
-                    toast.error(`Only ${product.stock} items in stock. You already have ${cartItems[existingIndex].quantity} in your cart.`);
+                    toast.error(
+                        `Only ${product.stock} items in stock. You already have ${cartItems[existingIndex].quantity} in your cart.`
+                    );
                     return;
                 }
                 cartItems[existingIndex].quantity = newQuantity;
@@ -72,66 +79,87 @@ export default function ProductCard({ product }: ProductCardProps) {
     const handleWishlist = (e: React.MouseEvent) => {
         e.preventDefault();
         setIsWishlisted((prev) => !prev);
-        toast.success(isWishlisted ? `${product.name} removed from wishlist!` : `${product.name} added to wishlist!`);
+        toast.success(
+            isWishlisted
+                ? `${product.name} removed from wishlist!`
+                : `${product.name} added to wishlist!`
+        );
     };
 
     return (
         <Link href={`/shop/${product._id}`}>
-            <div className="group bg-card rounded-2xl overflow-hidden border border-border/50 hover:shadow-xl transition-all duration-300 cursor-pointer">
+            <div className="group bg-card rounded-2xl overflow-hidden border border-border/50 hover:border-border hover:shadow-md transition-all duration-300 cursor-pointer">
                 <div className="aspect-square relative overflow-hidden bg-muted">
-                    <Image
-                        src={product.productUrl[0]}
-                        alt={product.name}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-500"
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 25vw"
-                    />
+                    {product.productUrl?.[0] ? (
+                        <Image
+                            src={product.productUrl[0]}
+                            alt={product.name}
+                            fill
+                            className={cn(
+                                "object-cover group-hover:scale-105 transition-transform duration-500",
+                                outOfStock && "opacity-60"
+                            )}
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 25vw"
+                        />
+                    ) : (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <ImageOff className="h-8 w-8 text-muted-foreground/40" />
+                        </div>
+                    )}
+
+                    {/* Stock badge */}
+                    {outOfStock ? (
+                        <span className="absolute top-2.5 left-2.5 bg-background text-muted-foreground text-[11px] font-medium px-2.5 py-1 rounded-md border border-border/50">
+                            Out of stock
+                        </span>
+                    ) : lowStock ? (
+                        <span className="absolute top-2.5 left-2.5 bg-amber-500/15 text-amber-700 dark:text-amber-400 text-[11px] font-medium px-2.5 py-1 rounded-md">
+                            {product.stock} left
+                        </span>
+                    ) : null}
 
                     {/* Wishlist Button */}
                     <button
                         onClick={handleWishlist}
-                        className="absolute top-3 right-3 p-2 rounded-full bg-white/80 hover:bg-white shadow-md transition-colors"
+                        className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-background/90 border border-border/50 hover:bg-background flex items-center justify-center transition-colors"
                         aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
                     >
                         <Heart
-                            className={`h-4 w-4 transition-colors ${isWishlisted ? "text-red-500 fill-red-500" : "text-gray-600 hover:text-red-500"
-                                }`}
+                            className={cn(
+                                "h-4 w-4 transition-colors",
+                                isWishlisted
+                                    ? "text-red-500 fill-red-500"
+                                    : "text-muted-foreground"
+                            )}
                         />
                     </button>
-
-                    {/* Out of stock overlay */}
-                    {product.stock === 0 && (
-                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                            <span className="bg-white text-black text-xs font-semibold px-3 py-1 rounded-full">
-                                Out of Stock
-                            </span>
-                        </div>
-                    )}
                 </div>
 
-                <div className="p-4">
-                    <div className="mb-2">
-                        <p className="text-xs text-muted-foreground mb-1">
-                            {product.category.name}
-                        </p>
-                        <h3 className="font-semibold text-foreground text-lg mb-1 line-clamp-1">
-                            {product.name}
-                        </h3>
-                    </div>
+                <div className="p-3.5">
+                    <p className="text-xs text-muted-foreground mb-0.5 truncate">
+                        {product.category.name}
+                    </p>
+                    <h3 className="font-medium text-foreground text-sm mb-2.5 line-clamp-1">
+                        {product.name}
+                    </h3>
 
-                    <div className="flex items-center justify-between mt-3">
-                        <p className="text-2xl font-bold text-primary">
+                    <div className="flex items-center justify-between">
+                        <p className="text-lg font-semibold text-foreground">
                             ${product.price.toLocaleString()}
                         </p>
-                        <Button
+                        <button
                             onClick={handleAddToCart}
-                            disabled={isAdding || product.stock === 0}
-                            size="sm"
-                            className="rounded-full"
+                            disabled={isAdding || outOfStock}
+                            aria-label="Add to cart"
+                            className={cn(
+                                "w-9 h-9 rounded-full flex items-center justify-center transition-colors shrink-0",
+                                outOfStock
+                                    ? "bg-muted text-muted-foreground/50 cursor-not-allowed"
+                                    : "bg-primary text-primary-foreground hover:bg-primary/90"
+                            )}
                         >
-                            <ShoppingCart className="h-4 w-4 mr-2" />
-                            {isAdding ? "Adding..." : "Add to Cart"}
-                        </Button>
+                            <ShoppingCart className="h-4 w-4" />
+                        </button>
                     </div>
                 </div>
             </div>
