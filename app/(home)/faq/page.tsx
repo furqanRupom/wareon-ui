@@ -8,6 +8,7 @@ import {
 import { Mail } from "lucide-react";
 import Link from "next/link";
 
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 export const metadata: Metadata = {
     title: "FAQ - Wareon",
     description: "Answers to common questions about orders, cash on delivery, shipping, and returns at Wareon.",
@@ -95,6 +96,20 @@ const FAQ_SECTIONS = [
 export default function FaqPage() {
     return (
         <div className="min-h-screen bg-background">
+
+            <div className="container mx-auto px-4 pt-8">
+                <Breadcrumb>
+                    <BreadcrumbList>
+                        <BreadcrumbItem>
+                            <BreadcrumbLink href="/">Home</BreadcrumbLink>
+                        </BreadcrumbItem>
+                        <BreadcrumbSeparator />
+                        <BreadcrumbItem>
+                            <BreadcrumbPage>Faq</BreadcrumbPage>
+                        </BreadcrumbItem>
+                    </BreadcrumbList>
+                </Breadcrumb>
+            </div>
             <div className="container mx-auto px-4 py-12 md:py-16 max-w-3xl">
                 <div className="text-center mb-12">
                     <h1 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight mb-3">

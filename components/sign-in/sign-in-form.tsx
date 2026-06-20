@@ -54,15 +54,7 @@ export default function SignInForm({redirect}: {redirect?: string}) {
                     </Field>
 
                     <Field>
-                        <div className="flex items-center justify-between">
-                            <FieldLabel htmlFor="password">Password</FieldLabel>
-                            <Link
-                                href="/forgot-password"
-                                className="text-sm font-medium hover:underline"
-                            >
-                                Forgot your password?
-                            </Link>
-                        </div>
+                        {/* TODO : we will later do forgot password here */}
 
                         <div className="relative">
                             <Input

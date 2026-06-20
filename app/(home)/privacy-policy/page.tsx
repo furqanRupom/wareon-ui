@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 export const metadata: Metadata = {
   title: "Privacy Policy - Wareon",
   description:
@@ -53,8 +54,22 @@ export default function PrivacyPolicyPage() {
   ];
 
   return (
-    <main className="pt-32 pb-16 px-4 md:px-6">
-      <div className="max-w-[800px] mx-auto">
+    <main className="">
+            <div className="container mx-auto px-4 pt-8">
+                <Breadcrumb>
+                    <BreadcrumbList>
+                        <BreadcrumbItem>
+                            <BreadcrumbLink href="/">Home</BreadcrumbLink>
+                        </BreadcrumbItem>
+                        <BreadcrumbSeparator />
+                        <BreadcrumbItem>
+                            <BreadcrumbPage>Faq</BreadcrumbPage>
+                        </BreadcrumbItem>
+                    </BreadcrumbList>
+                </Breadcrumb>
+            </div>
+
+      <div className="max-w-[800px] mx-auto pt-12 pb-16 px-4 md:px-6">
         {/* Header */}
         <div className="mb-12">
           <p className="text-sm font-bold text-primary uppercase tracking-wider mb-2">

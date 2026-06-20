@@ -30,7 +30,7 @@ export default function NavbarAuthButtons({
         return (
             <>
                 <Link href={dashboardRoute}>
-                    <Button variant="outline" className="gap-2">
+                    <Button variant="outline" className="gap-2 cursor-pointer">
                         <LayoutDashboard className="h-4 w-4" />
                         Dashboard
                     </Button>

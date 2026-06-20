@@ -1,5 +1,6 @@
 "use client";
 
+import { Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { IProduct } from "@/types/product.interface";
 import { ArrowRight } from "lucide-react";
@@ -57,7 +58,7 @@ export default function NewArrivals({ products }: NewArrivalsProps) {
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                   />
                   {/* Favorite button */}
-                  <button className="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur rounded-full flex items-center justify-center text-foreground hover:text-error transition-all active:scale-90 shadow-md">
+                  <button className="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur rounded-full flex items-center justify-center text-primary hover:text-error transition-all active:scale-90 shadow-md">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                     </svg>
@@ -102,5 +103,3 @@ export default function NewArrivals({ products }: NewArrivalsProps) {
   );
 }
 
-// Add Star component import
-import { Star } from "lucide-react";

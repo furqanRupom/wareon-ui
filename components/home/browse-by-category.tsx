@@ -39,7 +39,7 @@ export default function BrowseByCategory() {
             Explore our meticulously curated collections.
           </p>
         </div>
-        <Link href="/products" className="group text-primary font-bold flex items-center gap-2 hover:translate-x-1 transition-transform">
+        <Link href="/shop" className="group text-primary font-bold flex items-center gap-2 hover:translate-x-1 transition-transform">
           Browse All Categories
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -61,9 +61,11 @@ export default function BrowseByCategory() {
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-10 flex flex-col justify-end">
             <span className="text-white/70 text-sm font-bold mb-2">MOST POPULAR</span>
             <h3 className="text-white text-3xl font-extrabold mb-4">The Tech Lab</h3>
-            <button className="w-fit bg-primary text-foreground px-8 py-3 rounded-full font-bold text-sm cursor-pointer hover:text-on-primary transition-colors">
+            <Link href="/shop">
+            <button className="w-fit bg-primary  px-8 py-3 rounded-full font-bold text-sm cursor-pointer hover:text-on-primary transition-colors">
               Explore Now
             </button>
+          </Link>
           </div>
         </div>
 

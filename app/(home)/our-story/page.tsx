@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { Leaf, HandCoins, Users, Sparkles } from "lucide-react";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 
 export const metadata: Metadata = {
     title: "Our Story - Wareon",
@@ -32,6 +33,20 @@ const VALUES = [
 export default function OurStoryPage() {
     return (
         <div className="min-h-screen bg-background">
+
+            <div className="container mx-auto px-4 pt-8">
+                <Breadcrumb>
+                    <BreadcrumbList>
+                        <BreadcrumbItem>
+                            <BreadcrumbLink href="/">Home</BreadcrumbLink>
+                        </BreadcrumbItem>
+                        <BreadcrumbSeparator />
+                        <BreadcrumbItem>
+                            <BreadcrumbPage>our story</BreadcrumbPage>
+                        </BreadcrumbItem>
+                    </BreadcrumbList>
+                </Breadcrumb>
+            </div>
             {/* Hero */}
             <div className="container mx-auto px-4 pt-14 pb-10 md:pt-20 md:pb-14 max-w-3xl text-center">
                 <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase mb-4">

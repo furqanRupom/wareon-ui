@@ -1,9 +1,10 @@
-import { Truck, ShieldCheck, RotateCcw, BadgeCheck } from "lucide-react"
+import { Truck, RotateCcw, BadgeCheck, HandCoinsIcon } from "lucide-react"
+
 
 const items = [
   { icon: Truck, title: "Free Shipping", desc: "Orders over $100" },
   { icon: BadgeCheck, title: "2 Year Warranty", desc: "Guaranteed quality" },
-  { icon: ShieldCheck, title: "Secure Pay", desc: "100% Encrypted" },
+  { icon: HandCoinsIcon, title: "Cash on Delivery", desc: "Pay when you receive" },
   { icon: RotateCcw, title: "30 Day Return", desc: "No questions asked" },
 ]
 
