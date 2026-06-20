@@ -62,7 +62,7 @@ export default function BrowseByCategory() {
             <span className="text-white/70 text-sm font-bold mb-2">MOST POPULAR</span>
             <h3 className="text-white text-3xl font-extrabold mb-4">The Tech Lab</h3>
             <Link href="/shop">
-            <button className="w-fit bg-primary  px-8 py-3 rounded-full font-bold text-sm cursor-pointer hover:text-on-primary transition-colors">
+            <button className="w-fit bg-primary px-8 py-3 rounded-full font-bold text-sm cursor-pointer text-white  transition-colors">
               Explore Now
             </button>
           </Link>

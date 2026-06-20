@@ -1,9 +1,10 @@
-
+"use client"
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight } from "lucide-react";
 
+import Autoplay from "embla-carousel-autoplay";
 import {
   Carousel,
   CarouselContent,
@@ -45,7 +46,13 @@ const HeroSection = () => {
         {/* LEFT BIG HERO CAROUSEL */}
         <div className="lg:col-span-2 rounded-3xl overflow-hidden min-h-130 relative">
 
-          <Carousel className="w-full h-full">
+          <Carousel plugins={[
+            Autoplay({
+              delay: 3000,
+              stopOnInteraction: false,
+              stopOnMouseEnter: true,
+            }),
+          ]} className="w-full h-full">
             <CarouselContent>
               {heroSlides.map((slide, index) => (
                 <CarouselItem key={index} className="relative">
@@ -77,9 +84,9 @@ const HeroSection = () => {
                         <p className="text-white/80">{slide.desc}</p>
 
                         <Link href="/shop" >
-                        <Button className="rounded-xl cursor-pointer px-6">
-                          Shop Now <ArrowRight className="ml-2 h-4 w-4" />
-                        </Button>
+                          <Button className="rounded-xl cursor-pointer px-6">
+                            Shop Now <ArrowRight className="ml-2 h-4 w-4" />
+                          </Button>
                         </Link>
                       </div>
                     </div>

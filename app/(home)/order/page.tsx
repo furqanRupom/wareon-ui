@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 // app/order/page.tsx
 import { Suspense } from "react";
 import Link from "next/link";
@@ -12,7 +13,10 @@ import {
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import OrderForm from "@/components/order/order-form";
-
+export const metadata: Metadata = {
+    title:"Order - Wareon",
+    description:"Wareon order page"
+};
 export default function OrderPage() {
     return (
         <div className="min-h-screen bg-background py-8">

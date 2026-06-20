@@ -18,6 +18,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { getOrderById } from "@/services/order/oderManagement";
+import { Metadata } from "next";
 
 const orderStatuses = {
   pending: { label: "Pending", icon: Package, color: "text-yellow-500", bgColor: "bg-yellow-50 dark:bg-yellow-950" },
@@ -29,11 +30,15 @@ const orderStatuses = {
 };
 
 interface OrderPageProps {
-  params: {
+  params: Promise<{
     orderId: string;
-  };
+  }>;
 }
 
+export const metadata: Metadata = {
+    title:"Order Details - Wareon",
+    description:"Wareon order detail page"
+};
 export default async function OrderDetailPage({ params }: OrderPageProps) {
   const { orderId } = await params;
 
