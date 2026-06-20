@@ -1,71 +1,105 @@
-"use client";
-
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Package, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Package, CheckCircle, Clock, DollarSign } from "lucide-react";
+import {
+    getDashboardStats,
+    getRevenueTrend,
+    getRecentOrders,
+} from "@/services/dashboard/dashboard.service";
+import { RevenueTrendChart } from "@/components/ui/revenue-trend-chart";
+import { getUserInfo } from "@/services/auth/getUserInfo";
+import { WelcomeCard } from "../dashboard/welcomeCard";
 
-export default function UserDashboardPage() {
-    // Mock data
-    const stats = {
-        totalOrders: 24,
-        approvedOrders: 18,
-        cancelledOrders: 4,
-        pendingOrders: 2,
-    };
+function getStatusBadge(status: string) {
+    switch (status) {
+        case "delivered":
+            return <Badge className="bg-green-500">Delivered</Badge>;
+        case "pending":
+            return <Badge className="bg-yellow-500">Pending</Badge>;
+        case "confirmed":
+            return <Badge className="bg-blue-500">Confirmed</Badge>;
+        case "shipped":
+            return <Badge className="bg-blue-500">Shipped</Badge>;
+        case "cancelled":
+            return <Badge className="bg-red-500">Cancelled</Badge>;
+        default:
+            return <Badge>Unknown</Badge>;
+    }
+}
 
-    const recentOrders = [
-        { id: "#1001", status: "approved", date: "2026-04-01" },
-        { id: "#1002", status: "pending", date: "2026-04-02" },
-        { id: "#1003", status: "cancelled", date: "2026-04-03" },
-    ];
+function getGreeting() {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
+}
 
-    const getStatusBadge = (status: string) => {
-        switch (status) {
-            case "approved":
-                return <Badge className="bg-green-500">Approved</Badge>;
-            case "pending":
-                return <Badge className="bg-yellow-500">Pending</Badge>;
-            case "cancelled":
-                return <Badge className="bg-red-500">Cancelled</Badge>;
-            default:
-                return <Badge>Unknown</Badge>;
-        }
-    };
+export default async function UserDashboardPage() {
+    const [statsRes, revenueTrendRes, user, recentOrdersRes] = await Promise.all([
+        getDashboardStats(),
+        getRevenueTrend("days=14"),
+        getUserInfo(),
+        getRecentOrders("limit=5"),
+    ]);
+    const name = user.name;
+
+    const stats = statsRes?.success
+        ? statsRes.data
+        : {
+              ordersToday: 0,
+              pendingOrders: 0,
+              completedOrders: 0,
+              revenueToday: 0,
+              lowStockCount: 0,
+              totalProducts: 0,
+              outOfStockCount: 0,
+          };
+
+    const revenueTrend = revenueTrendRes?.success ? revenueTrendRes.data : [];
+    const recentOrders = recentOrdersRes?.success ? recentOrdersRes.data : [];
 
     return (
         <div className="p-6 space-y-6">
-            <h1 className="text-2xl font-bold">User Dashboard</h1>
+            <WelcomeCard name={user.name} />
+
+            {!statsRes?.success && (
+                <p className="text-sm text-red-600">
+                    {statsRes?.message ?? "Failed to load dashboard stats."}
+                </p>
+            )}
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <Card className="shadow-sm rounded-2xl">
                     <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle className="text-sm">Total Orders</CardTitle>
+                        <CardTitle className="text-sm">Orders Today</CardTitle>
                         <Package className="h-5 w-5" />
                     </CardHeader>
                     <CardContent>
-                        <p className="text-2xl font-bold">{stats.totalOrders}</p>
+                        <p className="text-2xl font-bold">{stats.ordersToday}</p>
                     </CardContent>
                 </Card>
 
                 <Card className="shadow-sm rounded-2xl">
                     <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle className="text-sm">Approved</CardTitle>
+                        <CardTitle className="text-sm">Completed</CardTitle>
                         <CheckCircle className="h-5 w-5" />
                     </CardHeader>
                     <CardContent>
-                        <p className="text-2xl font-bold text-green-600">{stats.approvedOrders}</p>
+                        <p className="text-2xl font-bold text-green-600">{stats.completedOrders}</p>
                     </CardContent>
                 </Card>
 
                 <Card className="shadow-sm rounded-2xl">
                     <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle className="text-sm">Cancelled</CardTitle>
-                        <XCircle className="h-5 w-5" />
+                        <CardTitle className="text-sm">Revenue Today</CardTitle>
+                        <DollarSign className="h-5 w-5" />
                     </CardHeader>
                     <CardContent>
-                        <p className="text-2xl font-bold text-red-600">{stats.cancelledOrders}</p>
+                        <p className="text-2xl font-bold text-red-600">
+                            ${stats.revenueToday.toLocaleString()}
+                        </p>
                     </CardContent>
                 </Card>
 
@@ -80,29 +114,48 @@ export default function UserDashboardPage() {
                 </Card>
             </div>
 
+            {/* Revenue Trend Chart */}
+            <Card className="rounded-2xl shadow-sm">
+                <CardHeader>
+                    <CardTitle>Revenue Trend</CardTitle>
+                    <CardDescription>Last 14 days</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <RevenueTrendChart data={revenueTrend} />
+                </CardContent>
+            </Card>
+
             {/* Recent Orders */}
             <Card className="rounded-2xl shadow-sm">
                 <CardHeader>
                     <CardTitle>Recent Orders</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                    {recentOrders.map((order) => (
-                        <div
-                            key={order.id}
-                            className="flex items-center justify-between p-3 border rounded-xl"
-                        >
-                            <div>
-                                <p className="font-medium">{order.id}</p>
-                                <p className="text-xs text-muted-foreground">{order.date}</p>
+                    {recentOrders.length === 0 ? (
+                        <p className="text-sm text-muted-foreground py-4 text-center">
+                            No recent orders found.
+                        </p>
+                    ) : (
+                        recentOrders.map((order: any) => (
+                            <div
+                                key={order.id}
+                                className="flex items-center justify-between p-3 border rounded-xl"
+                            >
+                                <div>
+                                    <p className="font-medium">{order.customerName}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                        {new Date(order.createdAt).toLocaleDateString()}
+                                    </p>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    {getStatusBadge(order.status)}
+                                    <Button size="sm" variant="outline">
+                                        View
+                                    </Button>
+                                </div>
                             </div>
-                            <div className="flex items-center gap-3">
-                                {getStatusBadge(order.status)}
-                                <Button size="sm" variant="outline">
-                                    View
-                                </Button>
-                            </div>
-                        </div>
-                    ))}
+                        ))
+                    )}
                 </CardContent>
             </Card>
         </div>

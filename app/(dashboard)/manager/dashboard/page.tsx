@@ -5,7 +5,7 @@ export const metadata:Metadata = {
     title: "Dashboard - Manager - WAREON",
     description: "Dashboard for managers to oversee warehouse operations and performance.",
 }
-export const dashboardManagePage = () => {
+const dashboardManagePage = () => {
     return (
         <div className="p-4">
          <ManagerDashboardPage />

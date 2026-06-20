@@ -9,13 +9,13 @@ import { revalidateTag } from "next/cache";
 export const updateMyProfile = async ( formData: FormData): Promise<any> => {
     try {
         const updateData = {
-            name: formData.get("name"),
-            phone: formData.get("phone"),
-            adressLine:formData.get("addressLine"),
-            state:formData.get("state"),
-            country:formData.get("country"),
-            city:formData.get("city"),
-            postalCode:formData.get("postalCode")
+            name: formData.get("name") ?? "",
+            phone: formData.get("phone") ?? "",
+            adressLine:formData.get("addressLine") ?? "",
+            state:formData.get("state") ?? "",
+            country:formData.get("country") ?? "",
+            city:formData.get("city") ?? "",
+            postalCode:formData.get("postalCode") ??""
         }
 
         if (zodValidator(updateData, updateProfileValidationSchema).success === false) {
