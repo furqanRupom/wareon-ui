@@ -28,6 +28,13 @@ export interface IOrders {
         name: string;
         email: string;
     };
+    paymentMethod:string,
+    alternatePhone?:string,
+    phone:string,
+    address?:string,
+    city?:string,
+    landmark?:string,
+    deliveryFee?:number,
     createdAt: string;
     updatedAt: string;
 }
