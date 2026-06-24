@@ -1,80 +1,77 @@
 # Wareon - Frontend
 
-A modern e-commerce frontend built with Next.js and shadcn/ui for product and order management.
+A modern e-commerce frontend built with Next.js for seamless product browsing, cart management, and order processing with role-based dashboards.
+
+---
+
+
+
+## Overview
+
+Wareon is a scalable e-commerce frontend application designed for both customers and managers.
+
+It allows users to browse products, manage carts, and place orders, while managers can control products, categories, and orders through an admin dashboard.
+
+---
 
 ## Tech Stack
 
-- **Framework:** Next.js 15 (App Router)
-- **UI Library:** shadcn/ui
-- **Styling:** Tailwind CSS
-- **Package Manager:** pnpm
-- **State Management:** React Hooks + LocalStorage
-- **HTTP Client:** Server Actions + Fetch API
-- **Icons:** Lucide React
+* Framework: Next.js 15 (App Router)
+* Language: TypeScript
+* UI: shadcn/ui
+* Styling: Tailwind CSS
+* State Management: React Hooks + LocalStorage
+* API Handling: Server Actions + Fetch API
+* Icons: Lucide React
+* Package Manager: pnpm
 
-## Features
+---
 
-### For Users
-- Browse products
-- Add products to cart
-- Create orders
-- View order history
-- Cancel pending orders
-- Update order quantities
+## Key Features
 
-### For Managers
-- Product management (CRUD)
-- Category management (CRUD)
-- Order management
-- Update order status
-- View all customer orders
+### User Features
 
-## Project Structure
+* Browse products
+* Add to cart
+* Create and manage orders
+* View order history
+* Cancel pending orders
+* Update order quantities
 
-```
-src/
-├── app/                    # Next.js app router pages
-│   ├── admin/             # Admin dashboard
-│   ├── shop/              # Shop pages
-│   ├── cart/              # Shopping cart
-├── components/            # React components
-│   ├── modules/          # Feature modules
-│   │   ├── product/
-│   │   ├── category/
-│   │   └── order/
-│   └── shared/           # Reusable components
-├── services/             # API services
-├── types/                # TypeScript interfaces
-└── lib/                  # Utilities
-```
+### Manager Features
+
+* Product management (CRUD)
+* Category management (CRUD)
+* Order management
+* Update order status
+* View all customer orders
+
+---
+
+
+
+---
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js 18+
-- pnpm
+
+* Node.js 18+
+* pnpm
+
+---
 
 ### Installation
 
 ```bash
-# Clone repository
-git clone <your-repo-url>
+git clone https://github.com/furqanRupom/wareon-ui.git
 cd wareon-frontend
-
-# Install dependencies
 pnpm install
-
-# Run development server
-pnpm run dev
-
-# Build for production
-pnpm run build
-
-# Start production server
-pnpm start
 ```
 
-### Environment Variables
+---
+
+### Environment Setup
 
 Create a `.env.local` file:
 
@@ -82,38 +79,79 @@ Create a `.env.local` file:
 NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1
 ```
 
-## Key Features
+---
+
+### Run Development Server
+
+```bash
+pnpm run dev
+```
+
+Application will run at:
+http://localhost:3000
+
+---
+
+### Production Build
+
+```bash
+pnpm run build
+pnpm start
+```
+
+---
+
+## Project Structure
+
+```
+src/
+├── app/
+│   ├── admin/
+│   ├── shop/
+│   ├── cart/
+├── components/
+│   ├── modules/
+│   │   ├── product/
+│   │   ├── category/
+│   │   └── order/
+│   └── shared/
+├── services/
+├── types/
+└── lib/
+```
+
+---
+
+## Core Functionalities
 
 ### Authentication
-- JWT-based authentication
-- Role-based access (User/Manager)
+
+* JWT-based authentication
+* Role-based access (User and Manager)
 
 ### Shopping Cart
-- Persistent cart storage (LocalStorage)
-- Real-time cart updates
-- Stock validation
+
+* Persistent cart using LocalStorage
+* Real-time updates
+* Stock validation
 
 ### Order Management
-- Create orders with cart items
-- Track order status (pending → confirmed → shipped → delivered)
-- Cancel orders (pending/confirmed only)
-- Update order quantities
+
+* Create orders from cart
+* Track order lifecycle
+* Cancel orders (restricted states)
+* Update quantities dynamically
+
+---
+
+## Important Links
+
+* Live App: https://wareon.vercel.app
+* Backend API: https://wareon-api.vercel.app
+* Backend Github Link: https://github.com/furqanRupom/wareon-api
 
 
 
-## Available Scripts
 
-| Command | Description |
-|---------|-------------|
-| `pnpm run dev` | Start development server |
-| `pnpm run build` | Build for production |
-| `pnpm start` | Start production server |
-| `pnpm run lint` | Run ESLint |
 
-## Screenshots
 
-[Add your screenshots here]
-
-## License
-
-MIT
